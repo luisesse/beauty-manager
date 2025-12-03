@@ -1,0 +1,84 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12 text-center">
+        <h2 class="mb-3">💰 Reporte de Caja</h2>
+        <p class="text-muted">
+            Desde: <strong>{{ fecha_inicio }}</strong> &nbsp;|&nbsp;
+            Hasta: <strong>{{ fecha_fin }}</strong>
+        </p>
+    </div>
+</div>
+
+<div class="row mb-4 justify-content-center">
+    <div class="col-md-8">
+        <form method="get" class="card card-body shadow-sm p-3 bg-light">
+            <div class="row g-2 align-items-end justify-content-center">
+
+                <div class="col-auto">
+                    <label class="small fw-bold text-muted">Desde:</label>
+                    <input type="date" name="fecha_inicio" class="form-control form-control-sm"
+                           value="{{ fecha_inicio|date:'Y-m-d' }}">
+                </div>
+
+                <div class="col-auto">
+                    <label class="small fw-bold text-muted">Hasta:</label>
+                    <input type="date" name="fecha_fin" class="form-control form-control-sm"
+                           value="{{ fecha_fin|date:'Y-m-d' }}">
+                </div>
+
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary btn-sm">🔍 Filtrar</button>
+                    <a href="{% url 'reporte_caja' %}" class="btn btn-outline-secondary btn-sm">Hoy</a>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row justify-content-center mb-5">
+    <div class="col-md-5">
+        <div class="card text-white bg-success shadow"> <div class="card-body text-center p-4">
+                <h6 class="card-subtitle mb-2 opacity-75">INGRESOS TOTALES DEL PERIODO</h6>
+                <h1 class="display-4 fw-bold">{{ total_ingresos|intcomma }} Gs.</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Fecha</th> <th>Hora</th>
+                    <th>Cliente</th>
+                    <th>Servicio</th>
+                    <th>Profesional</th>
+                    <th class="text-end">Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cita in citas %}
+                    <tr>
+                        <td class="fw-bold text-muted">{{ cita.fecha|date:"d/m" }}</td> <td>{{ cita.hora }}</td>
+                        <td>{{ cita.cliente.nombre }} {{ cita.cliente.apellido }}</td>
+                        <td>{{ cita.servicio.nombre }}</td>
+                        <td>{{ cita.profesional.nombre }}</td>
+                        <td class="text-end fw-bold">{{ cita.monto_cobrado|intcomma }} Gs.</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            No hay movimientos en este rango de fechas.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

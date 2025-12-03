@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">👤 Perfil del Cliente</h5>
+            </div>
+            <div class="card-body">
+                <h3>{{ cliente.nombre }} {{ cliente.apellido }}</h3>
+                <hr>
+                <p><strong>📞 Teléfono:</strong> {{ cliente.telefono }}</p>
+                <p><strong>🆔 CI/RUC:</strong> {{ cliente.ci_ruc }}</p>
+                <p><strong>📧 Email:</strong> {{ cliente.email|default:"No registrado" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <h4 class="mb-3">📜 Historial de Visitas</h4>
+        
+        <div class="list-group">
+            {% for cita in historial %}
+                <div class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ cita.servicio.nombre }}</h5>
+                        <small class="text-muted">{{ cita.fecha }}</small>
+                    </div>
+                    <p class="mb-1">Atendido por: <strong>{{ cita.profesional.nombre }}</strong></p>
+                    
+                    {% if cita.estado == 'REALIZADO' %}
+                        <span class="badge bg-success">Realizado</span>
+                    {% elif cita.estado == 'CANCELADO' %}
+                        <span class="badge bg-danger">Cancelado</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Pendiente</span>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="alert alert-info">
+                    Este cliente es nuevo, no tiene historial de citas.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.home, name='home'),
+    path('servicios/', views.listado_servicios, name='lista_servicios'),
+    path('agendar/', views.agendar_cita, name='agendar_cita'),
+    path('servicios/nuevo/', views.crear_servicio, name='crear_servicio'),
+    path('servicios/editar/<int:id>/', views.editar_servicio, name='editar_servicio'),
+    path('servicios/eliminar/<int:id>/', views.eliminar_servicio, name='eliminar_servicio'),
+    path('clientes/', views.listado_clientes, name='listado_clientes'),
+    path('clientes/<int:id>/', views.detalle_cliente, name='detalle_cliente'),
+    path('clientes/nuevo/', views.crear_cliente, name='crear_cliente'),
+    path('clientes/editar/<int:id>/', views.editar_cliente, name='editar_cliente'),
+    path('clientes/eliminar/<int:id>/', views.eliminar_cliente, name='eliminar_cliente'),
+    path('profesional/', views.listado_profesional, name='listado_profesional'),
+    path('profesional/nuevo/', views.crear_profesional, name='crear_profesional'),
+    path('profesional/editar/<int:id>/', views.editar_profesional, name='editar_profesional'),
+    path('profesional/eliminar/<int:id>/', views.eliminar_profesional, name='eliminar_profesional'),
+    path('caja/', views.reporte_caja, name='reporte_caja'),
+    path('citas/editar/<int:id>/', views.editar_cita, name='editar_cita'),
+    path('citas/finalizar/<int:id>/', views.finalizar_cita, name='finalizar_cita'),
+    path('citas/', views.listado_citas, name='listado_citas'),
+    path('citas/cancelar/<int:id>/', views.cancelar_cita, name='cancelar_cita'),
+    path('citas/confirmar/<int:id>/', views.confirmar_cita, name='confirmar_cita'),
+]

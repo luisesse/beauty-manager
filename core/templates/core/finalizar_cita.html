@@ -1,0 +1,52 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-lg border-success">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0">💸 Finalizar y Cobrar</h4>
+            </div>
+            
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <h5 class="text-muted mb-1">Cliente</h5>
+                    <h3 class="fw-bold">{{ cita.cliente.nombre }} {{ cita.cliente.apellido }}</h3>
+                    <p class="text-muted small">{{ cita.cliente.ci_ruc }}</p>
+                    <hr>
+                    
+                    <div class="row text-start">
+                        <div class="col-6">
+                            <small class="text-muted">Servicio:</small><br>
+                            <strong>{{ cita.servicio.nombre }}</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <small class="text-muted">Profesional:</small><br>
+                            <strong>{{ cita.profesional.nombre }} {{ cita.profesional.apellido }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-center d-block">Monto a Cobrar (Gs.)</label>
+                        {{ form.monto_cobrado}}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            ✅ Confirmar Cobro
+                        </button>
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

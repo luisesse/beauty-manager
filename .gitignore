@@ -1,0 +1,15 @@
+# Archivos de sistema y PyCharm
+.idea/
+__pycache__/
+*.py[cod]
+
+# Entorno Virtual (¡Muy importante ignorar esto!)
+venv/
+.venv/
+env/
+
+# Variables de entorno y seguridad
+.env
+
+# Archivos de medios (Las fotos de prueba no suelen subirse al código base)
+media/

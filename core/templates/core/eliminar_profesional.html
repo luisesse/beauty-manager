@@ -1,0 +1,38 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">⚠️ Borrar Profesional</h4>
+            </div>
+            <div class="card-body text-center">
+                
+                {% if error %}
+                    <div class="alert alert-warning">
+                        🛑 <strong>¡Operación Bloqueada!</strong><br>
+                        {{ error }}
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'listado_profesional' %}" class="btn btn-secondary">Volver al listado</a>
+                    </div>
+                {% else %}
+                    <p class="lead">¿Estás seguro que deseas eliminar al profesional?</p>
+                    <h3 class="fw-bold my-4">{{ profesional.nombre }} {{ profesional.apellido }}</h3>
+                    <p class="text-muted"> {{ profesional.especialidad }}</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-block mt-4">
+                            <button type="submit" class="btn btn-danger btn-lg">Sí, Eliminar</button>
+                            <a href="{% url 'listado_profesional' %}" class="btn btn-secondary btn-lg">Cancelar</a>
+                        </div>
+                    </form>
+                {% endif %}
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
