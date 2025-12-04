@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Cita, Servicio, Cliente, Profesional, HorarioAtencion
+from .models import Cita, Servicio, Cliente, Profesional, HorarioAtencion, Gasto
 from datetime import date, datetime
 
 
@@ -124,4 +124,17 @@ class ProfesionalForm(forms.ModelForm):
             'especialidad': forms.TextInput(attrs={'class': 'form-control'}),
             'telefono': forms.TextInput(attrs={'class': 'form-control'}),
             'imagen': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+
+# Formularios de Gastos
+
+class GastoForm(forms.ModelForm):
+    class Meta:
+        model = Gasto
+        fields = ['descripcion', 'monto', 'fecha', 'categoria']
+        widgets = {
+            'descripcion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Pago de Luz Ande'}),
+            'monto': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese monto'}),
+            'fecha': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'categoria': forms.Select(attrs={'class': 'form-select select2'}),
         }

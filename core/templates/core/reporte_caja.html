@@ -39,11 +39,36 @@
     </div>
 </div>
 
-<div class="row justify-content-center mb-5">
-    <div class="col-md-5">
-        <div class="card text-white bg-success shadow"> <div class="card-body text-center p-4">
-                <h6 class="card-subtitle mb-2 opacity-75">INGRESOS TOTALES DEL PERIODO</h6>
-                <h1 class="display-4 fw-bold">{{ total_ingresos|intcomma }} Gs.</h1>
+<div class="row justify-content-center mb-5 text-center">
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-success shadow h-100">
+            <div class="card-header fw-bold">INGRESOS</div>
+            <div class="card-body">
+                <h2 class="display-6 fw-bold">+ {{ total_ingresos|intcomma }} Gs.</h2>
+                <small>Citas Cobradas</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-danger shadow h-100">
+            <div class="card-header fw-bold">EGRESOS</div>
+            <div class="card-body">
+                <h2 class="display-6 fw-bold">- {{ total_egresos|intcomma }} Gs.</h2>
+                <small>Gastos Operativos</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-dark bg-light shadow h-100 border-primary border-3">
+            <div class="card-header fw-bold text-primary">SALDO NETO</div>
+            <div class="card-body">
+                <h2 class="display-5 fw-bold text-primary">
+                    {{ saldo_neto|intcomma }} Gs.
+                </h2>
+                <small class="text-muted">Ganancia Real</small>
             </div>
         </div>
     </div>
@@ -74,6 +99,41 @@
                     <tr>
                         <td colspan="6" class="text-center py-4 text-muted">
                             No hay movimientos en este rango de fechas.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<br>
+
+<div class="card shadow-sm border-danger">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"> <i class="bi bi-graph-up-arrow text-info"></i> Detalle de Gastos del Periodo</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Categoría</th>
+                    <th class="text-end">Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gasto in gastos %}
+                    <tr>
+                        <td>{{ gasto.fecha|date:"d/m" }}</td>
+                        <td>{{ gasto.descripcion }}</td>
+                        <td><small class="badge bg-secondary">{{ gasto.categoria.nombre }}</small></td>
+                        <td class="text-end text-danger fw-bold">- {{ gasto.monto|intcomma }} Gs.</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-3 text-muted">
+                            No hubo gastos en este periodo.
                         </td>
                     </tr>
                 {% endfor %}

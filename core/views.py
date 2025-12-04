@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import ProtectedError, Sum, Q
 from django.contrib import messages
 from datetime import date, datetime
-from .models import Servicio, Cita,  Cliente, Profesional
-from .forms import CitaForm, ServicioForm, ClienteForm, ProfesionalForm, CobrarCitaForm
+from .models import Servicio, Cita,  Cliente, Profesional, Gasto
+from .forms import CitaForm, ServicioForm, ClienteForm, ProfesionalForm, CobrarCitaForm, GastoForm
 
 
 @login_required
@@ -43,27 +43,6 @@ def crear_servicio(request):
     }
 
     return render(request, 'core/form_servicio.html', contexto)
-
-@login_required
-def agendar_cita(request):
-    if request.method == 'POST':
-
-        form = CitaForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, '¡La cita se creó correctamente!')
-            return redirect('listado_citas')
-    else:
-
-        form = CitaForm()
-
-    contexto = {
-        'form': form,
-        'titulo': 'Agendar Cita'
-    }
-
-    return render(request, 'core/agendar_cita.html',  contexto)
-
 
 @login_required
 def editar_servicio(request, id):
@@ -260,36 +239,27 @@ def eliminar_profesional(request, id):
     return render(request, 'core/eliminar_profesional.html', {'profesional': profesional})
 
 
+#---Vistas de Citas---
+
 @login_required
-def reporte_caja(request):
-    # Valores por defecto: Hoy
-    fecha_inicio = date.today()
-    fecha_fin = date.today()
+def agendar_cita(request):
+    if request.method == 'POST':
 
-    # Si vienen datos en la URL (?fecha_inicio=...&fecha_fin=...)
-    if request.GET.get('fecha_inicio') and request.GET.get('fecha_fin'):
-        try:
-            fecha_inicio = datetime.strptime(request.GET.get('fecha_inicio'), '%Y-%m-%d').date()
-            fecha_fin = datetime.strptime(request.GET.get('fecha_fin'), '%Y-%m-%d').date()
-        except ValueError:
-            pass  # Si hay error de formato, nos quedamos con "hoy"
+        form = CitaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '¡La cita se creó correctamente!')
+            return redirect('listado_citas')
+    else:
 
-    # FILTRO POR RANGO (__range)
-    # Buscamos citas realizadas ENTRE inicio y fin (inclusive)
-    citas = Cita.objects.filter(
-        fecha__range=[fecha_inicio, fecha_fin],
-        estado='REALIZADO'
-    ).order_by('fecha', 'hora')
-
-    total_ingresos = citas.aggregate(total=Sum('monto_cobrado'))['total'] or 0
+        form = CitaForm()
 
     contexto = {
-        'citas': citas,
-        'total_ingresos': total_ingresos,
-        'fecha_inicio': fecha_inicio,
-        'fecha_fin': fecha_fin
+        'form': form,
+        'titulo': 'Agendar Cita'
     }
-    return render(request, 'core/reporte_caja.html', contexto)
+
+    return render(request, 'core/agendar_cita.html',  contexto)
 
 @login_required
 def editar_cita(request, id):
@@ -344,7 +314,7 @@ def finalizar_cita(request, id):
             # 2. Forzamos el estado a REALIZADO
             cita_final.estado = 'REALIZADO'
             cita_final.save()
-            messages.success(request, '💰 ¡Cobro registrado exitosamente!')
+            messages.success(request, '¡Cobro registrado exitosamente!')
             return redirect('home')
     else:
         # Pre-llenamos el monto con lo que cuesta el servicio base
@@ -378,3 +348,73 @@ def confirmar_cita(request, id):
     cita.save()
     return redirect('home')
 
+#---Vista de Caja---
+
+@login_required
+def reporte_caja(request):
+    # Valores por defecto: Hoy
+    fecha_inicio = date.today()
+    fecha_fin = date.today()
+
+    # Si vienen datos en la URL (?fecha_inicio=...&fecha_fin=...)
+    if request.GET.get('fecha_inicio') and request.GET.get('fecha_fin'):
+        try:
+            fecha_inicio = datetime.strptime(request.GET.get('fecha_inicio'), '%Y-%m-%d').date()
+            fecha_fin = datetime.strptime(request.GET.get('fecha_fin'), '%Y-%m-%d').date()
+        except ValueError:
+            pass  # Si hay error de formato, nos quedamos con "hoy"
+
+    # INGRESOS
+    citas = Cita.objects.filter(
+        fecha__range=[fecha_inicio, fecha_fin],
+        estado='REALIZADO'
+    ).order_by('fecha', 'hora')
+
+    total_ingresos = citas.aggregate(total=Sum('monto_cobrado'))['total'] or 0
+
+    # 2. EGRESOS
+    gastos = Gasto.objects.filter(
+        fecha__range=[fecha_inicio, fecha_fin]
+    ).order_by('fecha')
+
+    total_egresos = gastos.aggregate(total=Sum('monto'))['total'] or 0
+
+    saldo_neto = total_ingresos - total_egresos
+
+    contexto = {
+        'citas': citas,
+        'gastos': gastos,
+        'total_ingresos': total_ingresos,
+        'total_egresos': total_egresos,
+        'saldo_neto': saldo_neto,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin
+    }
+    return render(request, 'core/reporte_caja.html', contexto)
+
+
+#---Vistas de Gastos---
+
+@login_required
+def lista_gastos(request):
+    gastos = Gasto.objects.all().order_by('-fecha', '-id')
+    return render(request, 'core/lista_gastos.html', {'gastos': gastos})
+
+@login_required
+def crear_gasto(request):
+    if request.method == 'POST':
+        form = GastoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Gasto registrado correctamente.')
+            return redirect('lista_gastos')
+    else:
+        # Sugerimos la fecha de hoy por defecto
+        form = GastoForm(initial={'fecha': date.today()})
+
+    contexto = {
+        'form': form,
+        'titulo': 'Registrar Nuevo Gasto'
+    }
+
+    return render(request, 'core/form_servicio.html', contexto)

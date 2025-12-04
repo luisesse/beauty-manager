@@ -39,6 +39,7 @@
                     <a class="nav-link" href="{% url 'listado_clientes' %}">Clientes</a>
                     <a class="nav-link" href="{% url 'listado_profesional' %}">Profesionales</a>
                     <a class="nav-link" href="{% url 'reporte_caja' %}"> <i class="bi bi-wallet2 text-info"></i> Caja</a>
+                    <a class="nav-link" href="{% url 'lista_gastos' %}">Gastos</a>
                 </div>
 
                 <div class="navbar-nav ms-auto">
@@ -47,7 +48,7 @@
                     <form action="{% url 'logout' %}" method="post" class="d-inline">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm btn-outline-light">
-                            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                            <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
                         </button>
                     </form>
                 </div>
