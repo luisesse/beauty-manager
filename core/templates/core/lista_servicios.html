@@ -1,9 +1,26 @@
-{% extends 'core/base.html' %} {% block content %}
+{% extends 'core/base.html' %}
+
+{% block content %}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Catálogo de Servicios</h2>
         <a href="{% url 'crear_servicio' %}" class="btn btn-primary">
             + Nuevo Servicio
         </a>
+    </div>
+        <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="get" class="d-flex gap-2">
+                <input type="text" name="q" class="form-control"
+                       placeholder="Buscar por nombre de servicio"
+                       value="{{ request.GET.q }}"> <button type="submit" class="btn btn-outline-primary">🔍</button>
+
+                {% if request.GET.q %}
+                    <a href="{% url 'lista_servicios' %}" class="btn btn-outline-secondary" title="Limpiar filtro">
+                        <i class="bi bi-backspace-reverse"></i>
+                    </a>
+                {% endif %}
+            </form>
+        </div>
     </div>
     
     <div class="list-group">
@@ -30,10 +47,10 @@
 
                     <div class="col-md-3 text-end">
                         <a href="{% url 'editar_servicio' servicio.id %}" class="btn btn-outline-secondary btn-sm">
-                            Editar ✏️
+                            Editar <i class="bi bi-pencil-square bi-lg"></i>
                         </a>
                         <a href="{% url 'eliminar_servicio' servicio.id %}" class="btn btn-outline-danger btn-sm">
-                            Borrar 🗑️
+                            Eliminar <i class="bi bi-trash bi-lg"></i>
                         </a>
                     </div>
 

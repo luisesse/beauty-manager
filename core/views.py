@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import ProtectedError, Sum
+from django.db.models import ProtectedError, Sum, Q
+from django.contrib import messages
 from datetime import date, datetime
 from .models import Servicio, Cita,  Cliente, Profesional
 from .forms import CitaForm, ServicioForm, ClienteForm, ProfesionalForm, CobrarCitaForm
@@ -8,15 +9,21 @@ from .forms import CitaForm, ServicioForm, ClienteForm, ProfesionalForm, CobrarC
 
 @login_required
 def listado_servicios(request):
-    # 1. Vamos a la base de datos y traemos TODOS los servicios
-    servicios = Servicio.objects.all().order_by('nombre')
+    busqueda = request.GET.get('q')
 
-    # 2. Preparamos una cajita de datos (contexto) para enviar al HTML
+    if busqueda:
+
+        servicios = Servicio.objects.filter(
+            Q(nombre__icontains=busqueda)
+        ).order_by('nombre')
+    else:
+
+        servicios = Servicio.objects.all().order_by('nombre')
+
     contexto = {
         'mis_servicios': servicios
     }
 
-    # 3. Renderizamos el HTML enviándole los datos
     return render(request, 'core/lista_servicios.html', contexto)
 
 @login_required
@@ -25,6 +32,7 @@ def crear_servicio(request):
         form = ServicioForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, f'¡Servicio {form.instance.nombre} se creó correctamente!')
             return redirect('lista_servicios')
     else:
         form = ServicioForm()
@@ -39,13 +47,14 @@ def crear_servicio(request):
 @login_required
 def agendar_cita(request):
     if request.method == 'POST':
-        # ESCENARIO 2: El usuario llenó el formulario y le dio a "Guardar"
+
         form = CitaForm(request.POST)
         if form.is_valid():
-            form.save() # ¡Guarda en PostgreSQL mágicamente!
+            form.save()
+            messages.success(request, '¡La cita se creó correctamente!')
             return redirect('listado_citas')
     else:
-        # ESCENARIO 1: El usuario solo quiere ver el formulario vacío (GET)
+
         form = CitaForm()
 
     contexto = {
@@ -77,11 +86,12 @@ def editar_servicio(request, id):
 
 @login_required
 def eliminar_servicio(request, id):
-    servicio = get_object_or_404(Servicio, pk=id)  # Buscamos al condenado
+    servicio = get_object_or_404(Servicio, pk=id)
 
     if request.method == 'POST':
-        # Si el usuario confirmó el formulario, procedemos a la ejecución
+
         servicio.delete()
+        messages.warning(request, f'El Servicio {servicio.nombre} ha sido eliminado permanentemente.')
         return redirect('lista_servicios')
 
     # Si no es POST, mostramos la página de "¿Estás seguro?"
@@ -89,11 +99,9 @@ def eliminar_servicio(request, id):
 
 @login_required
 def home(request):
-    # 1. Obtener la fecha de hoy
+
     hoy = date.today()
 
-    # 2. FILTRAR: Trae solo las citas donde fecha es mayor o igual a hoy
-    # 3. ORDENAR: Pon primero las más tempranas (hora)
     citas_hoy = Cita.objects.filter(fecha=hoy).order_by('hora')
 
     contexto = {
@@ -104,15 +112,27 @@ def home(request):
 
 @login_required
 def listado_clientes(request):
-    clientes = Cliente.objects.all().order_by('nombre', 'apellido')
+
+    busqueda = request.GET.get('q')
+
+    if busqueda:
+
+        clientes = Cliente.objects.filter(
+            Q(nombre__icontains=busqueda) |
+            Q(apellido__icontains=busqueda) |
+            Q(ci_ruc__icontains=busqueda)
+        ).order_by('nombre', 'apellido')
+    else:
+
+        clientes = Cliente.objects.all().order_by('nombre', 'apellido')
+
     return render(request, 'core/lista_clientes.html', {'clientes': clientes})
 
 @login_required
 def detalle_cliente(request, id):
-    # Traemos al cliente o error 404
+
     cliente = get_object_or_404(Cliente, pk=id)
 
-    # MAGIA: Traemos sus citas históricas ordenadas por fecha (de la más nueva a la vieja)
     historial = cliente.citas.all().order_by('-fecha')
 
     contexto = {
@@ -127,7 +147,8 @@ def crear_cliente(request):
         form = ClienteForm(request.POST)
         if form.is_valid():
             form.save()
-            # Al guardar, nos vamos directo al listado de clientes
+            messages.success(request, f'¡El cliente {form.instance.nombre} se creó correctamente!')
+
             return redirect('listado_clientes')
     else:
         form = ClienteForm()
@@ -135,7 +156,7 @@ def crear_cliente(request):
     return render(request, 'core/form_cliente.html', {'form': form, 'titulo': 'Nuevo Cliente'})
 
 def editar_cliente(request, id):
-    # 1. Buscar el servicio. Si no existe el id 500, muestra error 404 automáticamente.
+
     cliente = get_object_or_404(Cliente, pk=id)
 
     if request.method == 'POST':
@@ -145,7 +166,7 @@ def editar_cliente(request, id):
             form.save()
             return redirect('listado_clientes')
     else:
-        # 3. (GET) Crear el formulario pre-rellenado con los datos de la base de datos
+
         form = ClienteForm(instance=cliente)
 
     contexto = {
@@ -161,18 +182,31 @@ def eliminar_cliente(request, id):
     if request.method == 'POST':
         try:
             cliente.delete()
+            messages.warning(request, f'El cliente {cliente.nombre} ha sido eliminado permanentemente.')
             return redirect('listado_clientes')
         except ProtectedError:
             # Si entra aquí, es porque el cliente tiene citas y la DB lo protegió.
             # No borramos nada y renderizamos la misma página pero con un error.
-            error_msg = f"No se puede eliminar a {cliente.nombre} porque tiene citas registradas. Borra sus citas primero."
-            return render(request, 'core/eliminar_cliente.html', {'cliente': cliente, 'error': error_msg})
+            messages.error(request, f'No se puede eliminar: El cliente {cliente.nombre} tiene citas registradas.')
+            return render(request, 'core/eliminar_cliente.html', {'cliente': cliente, 'error': messages.error})
 
     return render(request, 'core/eliminar_cliente.html', {'cliente': cliente})
 
 @login_required
 def listado_profesional(request):
-    profesional = Profesional.objects.all().order_by('nombre', 'apellido')
+    busqueda = request.GET.get('q')
+
+    if busqueda:
+
+        profesional = Profesional.objects.filter(
+            Q(nombre__icontains=busqueda) |
+            Q(apellido__icontains=busqueda) |
+            Q(especialidad__icontains=busqueda)
+        ).order_by('nombre', 'apellido')
+    else:
+
+        profesional = Profesional.objects.all().order_by('nombre', 'apellido')
+
     return render(request, 'core/lista_profesional.html', {'profesional': profesional})
 
 @login_required
@@ -181,6 +215,7 @@ def crear_profesional(request):
         form = ProfesionalForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
+            messages.success(request, f'¡El profesional {form.instance.nombre} se creó correctamente!')
 
             return redirect('listado_profesional')
     else:
@@ -189,7 +224,7 @@ def crear_profesional(request):
     return render(request, 'core/form_profesional.html', {'form': form, 'titulo': 'Nuevo Profesional'})
 
 def editar_profesional(request, id):
-    # 1. Buscar el servicio. Si no existe el id 500, muestra error 404 automáticamente.
+
     profesional = get_object_or_404(Profesional, pk=id)
 
     if request.method == 'POST':
@@ -199,7 +234,7 @@ def editar_profesional(request, id):
             form.save()
             return redirect('listado_profesional')
     else:
-        # 3. (GET) Crear el formulario pre-rellenado con los datos de la base de datos
+
         form = ProfesionalForm(instance=profesional)
 
     contexto = {
@@ -215,11 +250,12 @@ def eliminar_profesional(request, id):
     if request.method == 'POST':
         try:
             profesional.delete()
+            messages.warning(request, f'El profesional {profesional.nombre} ha sido eliminado permanentemente.')
             return redirect('listado_profesional')
         except ProtectedError:
 
-            error_msg = f"No se puede eliminar a {profesional.nombre} porque tiene citas registradas. Borra sus citas primero."
-            return render(request, 'core/eliminar_profesional.html', {'profesional': profesional, 'error': error_msg})
+            messages.error(request,f'No se puede eliminar, el profesional {profesional.nombre} tiene citas registradas.')
+            return render(request, 'core/eliminar_profesional.html', {'profesional': profesional, 'error': messages.error})
 
     return render(request, 'core/eliminar_profesional.html', {'profesional': profesional})
 
@@ -243,7 +279,7 @@ def reporte_caja(request):
     citas = Cita.objects.filter(
         fecha__range=[fecha_inicio, fecha_fin],
         estado='REALIZADO'
-    ).order_by('fecha', 'hora')  # Ordenar cronológicamente
+    ).order_by('fecha', 'hora')
 
     total_ingresos = citas.aggregate(total=Sum('monto_cobrado'))['total'] or 0
 
@@ -272,21 +308,26 @@ def editar_cita(request, id):
         'form': form,
         'titulo': 'Gestión de Cita'
     }
-    # Reutilizamos el template genérico que creamos para clientes (¡Reciclaje Pro!)
-    # OJO: Si ese template tenía campos específicos manuales, mejor crea uno nuevo.
-    # Si usaste {{ form.as_p }} o un loop genérico, funcionará perfecto.
-    # Por seguridad, usemos 'core/form_cita.html' (crealo copiando el de agendar_cita.html)
+
     return render(request, 'core/agendar_cita.html', contexto)
 
 
 @login_required
 def listado_citas(request):
-    # Traer citas desde HOY en adelante
-    # Y que NO estén canceladas ni ya realizadas (solo las activas)
+    # Traer citas activas desde HOY en adelante
+    # Y que no estén canceladas ni realizadas
     citas = Cita.objects.filter(
         fecha__gte=date.today(),
         estado__in=['PENDIENTE', 'CONFIRMADO']
-    ).order_by('fecha', 'hora')  # Ordenar por fecha y luego por hora
+    ).order_by('fecha', 'hora')
+
+    busqueda = request.GET.get('q')
+    if busqueda:
+        citas = citas.filter(
+            Q(cliente__nombre__icontains=busqueda) |
+            Q(cliente__apellido__icontains=busqueda) |
+            Q(profesional__nombre__icontains=busqueda)
+        )
 
     return render(request, 'core/lista_citas.html', {'citas': citas})
 
@@ -300,10 +341,11 @@ def finalizar_cita(request, id):
         if form.is_valid():
             # 1. Guardamos el monto
             cita_final = form.save(commit=False)
-            # 2. Forzamos el estado a REALIZADO (Lógica de negocio automática)
+            # 2. Forzamos el estado a REALIZADO
             cita_final.estado = 'REALIZADO'
             cita_final.save()
-            return redirect('home')  # Volvemos al dashboard
+            messages.success(request, '💰 ¡Cobro registrado exitosamente!')
+            return redirect('home')
     else:
         # Pre-llenamos el monto con lo que cuesta el servicio base
         form = CobrarCitaForm(instance=cita, initial={'monto_cobrado': cita.servicio.precio_estimado})
@@ -314,7 +356,7 @@ def finalizar_cita(request, id):
     }
     return render(request, 'core/finalizar_cita.html', contexto)
 
-# Vista para cancelar (Botón X)
+
 @login_required
 def cancelar_cita(request, id):
     cita = get_object_or_404(Cita, pk=id)
@@ -328,11 +370,11 @@ def cancelar_cita(request, id):
     # Si es GET, le mostramos la pregunta
     return render(request, 'core/cancelar_cita.html', {'cita': cita})
 
-# Vista para confirmar asistencia (Botón Check en Home)
+
 @login_required
 def confirmar_cita(request, id):
     cita = get_object_or_404(Cita, pk=id)
     cita.estado = 'CONFIRMADO'
     cita.save()
-    return redirect('home') # Volvemos al dashboard de hoy
+    return redirect('home')
 

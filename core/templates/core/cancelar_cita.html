@@ -5,14 +5,15 @@
     <div class="col-md-6">
         <div class="card border-danger shadow">
             <div class="card-header bg-danger text-white text-center">
-                <h4 class="mb-0">🛑 Cancelar Cita</h4>
+                <h4 class="mb-0"> <i class="bi bi-sign-stop text-danger"></i> Cancelar Cita</h4>
             </div>
             <div class="card-body text-center p-5">
                 <h5 class="text-muted mb-3">¿Estás seguro que deseas cancelar esta cita?</h5>
                 
                 <h3 class="fw-bold">{{ cita.cliente.nombre }} {{ cita.cliente.apellido }}</h3>
                 <p class="mb-4">
-                    📅 {{ cita.fecha }} - ⏰ {{ cita.hora }}<br>
+                   <i class="bi bi-calendar-month-fill text-danger"></i> {{ cita.fecha }} -
+                    <i class="bi bi-alarm"></i> {{ cita.hora }}<br>
                     <small class="text-muted">Profesional: {{ cita.profesional.nombre }}</small>
                 </p>
 

@@ -5,20 +5,20 @@
     <div class="col-md-4">
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-info text-white">
-                <h5 class="mb-0">👤 Perfil del Cliente</h5>
+                <h5 class="mb-0"> <i class="bi bi-person-lines-fill text-dark"></i> Perfil del Cliente</h5>
             </div>
             <div class="card-body">
                 <h3>{{ cliente.nombre }} {{ cliente.apellido }}</h3>
                 <hr>
-                <p><strong>📞 Teléfono:</strong> {{ cliente.telefono }}</p>
-                <p><strong>🆔 CI/RUC:</strong> {{ cliente.ci_ruc }}</p>
-                <p><strong>📧 Email:</strong> {{ cliente.email|default:"No registrado" }}</p>
+                <p><strong> <i class="bi bi-telephone-plus text-danger"></i> Teléfono:</strong> {{ cliente.telefono }}</p>
+                <p><strong> <i class="bi bi-person-vcard text-info"></i> CI/RUC:</strong> {{ cliente.ci_ruc }}</p>
+                <p><strong> <i class="bi bi-envelope-at"></i> Email:</strong> {{ cliente.email|default:"No registrado" }}</p>
             </div>
         </div>
     </div>
 
     <div class="col-md-8">
-        <h4 class="mb-3">📜 Historial de Visitas</h4>
+        <h4 class="mb-3"> <i class="bi bi-journal-text text-info"></i> Historial de Visitas</h4>
         
         <div class="list-group">
             {% for cita in historial %}

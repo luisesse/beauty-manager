@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -77,11 +78,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'db_peluqueria',       # El nombre exacto de la DB que creaste en pgAdmin
-        'USER': 'postgres',            # El usuario por defecto (si no creaste otro)
+        'NAME': 'db_peluqueria',
+        'USER': 'postgres',
         'PASSWORD': '3lch0lux',
-        'HOST': 'localhost',           # Significa "esta misma máquina"
-        'PORT': '5432',                # El puerto estándar de PostgreSQL
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -138,5 +139,15 @@ LOGOUT_REDIRECT_URL = 'login'
 # URL pública para acceder a las fotos (ej: http://sitio.com/media/foto.jpg)
 MEDIA_URL = '/media/'
 
-# Carpeta física en tu disco duro donde se guardarán
+# Carpeta física en  disco duro
 MEDIA_ROOT = BASE_DIR / 'media'
+
+from django.contrib.messages import constants as messages
+
+MESSAGE_TAGS = {
+    messages.DEBUG: 'secondary',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
+}

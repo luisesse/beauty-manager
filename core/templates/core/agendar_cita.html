@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="row justify-content-center"> <div class="col-md-6"> <div class="card shadow-sm"> <div class="card-body p-4">
-                <h3 class="mb-4 text-center">📅 {{ titulo }}</h3>
+                <h3 class="mb-4 text-center"> <i class="bi bi-calendar-day text-primary"></i> {{ titulo }}</h3>
 
                 {% if form.errors %}
                     <div class="alert alert-danger small"> <ul class="mb-0 ps-3">
@@ -30,7 +30,9 @@
                     {% endfor %}
 
                     <div class="d-grid gap-2 mt-4">
-                        <button type="submit" class="btn btn-success">Confirmar Reserva</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-calendar-check"></i> Confirmar Reserva
+                        </button>
                         <a href="{% url 'listado_citas' %}" class="btn btn-outline-secondary btn-sm">Cancelar</a>
                     </div>
                 </form>

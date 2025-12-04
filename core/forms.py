@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Cita, Servicio, Cliente, Profesional
+from .models import Cita, Servicio, Cliente, Profesional, HorarioAtencion
 from datetime import date, datetime
 
 
@@ -8,13 +8,13 @@ class CitaForm(forms.ModelForm):
     class Meta:
         model = Cita
         fields = ['cliente', 'profesional', 'servicio', 'fecha', 'hora']
-        # Agregamos 'form-control-sm' para hacerlos compactos
+        # 'form-control-sm' para hacerlos compactos
         widgets = {
             'fecha': forms.DateInput(format='%Y-%m-%d',attrs={'type': 'date', 'class': 'form-control form-control-sm'}),
             'hora': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control form-control-sm'}),
-            'cliente': forms.Select(attrs={'class': 'form-select form-select-sm'}),
-            'profesional': forms.Select(attrs={'class': 'form-select form-select-sm'}),
-            'servicio': forms.Select(attrs={'class': 'form-select form-select-sm'}),
+            'cliente': forms.Select(attrs={'class': 'form-select select2'}),
+            'profesional': forms.Select(attrs={'class': 'form-select select2'}),
+            'servicio': forms.Select(attrs={'class': 'form-select select2'}),
         }
 
     def clean(self):
@@ -23,22 +23,44 @@ class CitaForm(forms.ModelForm):
         hora = cleaned_data.get('hora')
         profesional = cleaned_data.get('profesional')
 
-        # Si falta algún dato básico, salimos (ya lo manejan los validadores por defecto)
+        # Si falta algún dato básico, salimos.
         if not (fecha and hora and profesional):
             return
 
         # --- VALIDACIÓN 1: NO VIAJAR AL PASADO ---
         hoy = date.today()
 
-        # A. Si la fecha es anterior a hoy (ayer, antes de ayer...)
+        # A. Si la fecha es anterior a hoy (ayer, antes de ayer, etc...)
         if fecha < hoy:
             raise ValidationError("No se pueden agendar citas en fechas pasadas.")
 
-        # B. Si la fecha es HOY, pero la hora ya pasó
+        # B. Si la fecha es HOY, pero la hora ya pasó (ohasama la hora)
         if fecha == hoy:
             hora_actual = datetime.now().time()
             if hora < hora_actual:
                 raise ValidationError("La hora seleccionada ya ha pasado.")
+
+        # 2. VALIDAR DÍAS Y HORARIOS DE ATENCIÓN
+        dia_semana = fecha.weekday()  # 0=Lunes, 6=Domingo
+
+        try:
+            # Buscamos la regla para ese día específico en la BD
+            horario = HorarioAtencion.objects.get(dia_semana=dia_semana)
+        except HorarioAtencion.DoesNotExist:
+            # Si por error no configuraron el día en el admin, asumimos cerrado por seguridad
+            raise ValidationError("No hay horario configurado para este día.")
+
+        # Regla A: Dias de atención.
+        if not horario.abierto:
+            raise ValidationError(f"El salón permanece cerrado los {horario.get_dia_semana_display()}´s.")
+
+        # Regla B: Horarios (Comparamos objetos TimeField directamente)
+        # Nota: hora es un objeto time (ej: 17:30), horario.hora_inicio también.
+        if not (horario.hora_inicio <= hora < horario.hora_fin):
+            raise ValidationError(
+                f"El horario de atención los {horario.get_dia_semana_display()}´s es de "
+                f"{horario.hora_inicio.strftime('%H:%M')} a {horario.hora_fin.strftime('%H:%M')}."
+            )
 
         # --- VALIDACIÓN 2: DISPONIBILIDAD  ---
         citas_coincidentes = Cita.objects.filter(
@@ -55,13 +77,13 @@ class CitaForm(forms.ModelForm):
                 f"El profesional {profesional} ya tiene una cita agendada a las {hora}."
             )
 
-            # Opcional: Si quieres que el error salga pegado al campo 'hora':
+            # Opcional: error pegado al campo 'hora':
             # self.add_error('hora', 'Horario no disponible para este estilista')
 
 class CobrarCitaForm(forms.ModelForm):
     class Meta:
         model = Cita
-        fields = ['monto_cobrado'] # Solo nos interesa la plata
+        fields = ['monto_cobrado']
         widgets = {
             'monto_cobrado': forms.NumberInput(attrs={
                 'class': 'form-control form-control-lg text-center fw-bold text-success',
@@ -101,6 +123,5 @@ class ProfesionalForm(forms.ModelForm):
             'apellido': forms.TextInput(attrs={'class': 'form-control'}),
             'especialidad': forms.TextInput(attrs={'class': 'form-control'}),
             'telefono': forms.TextInput(attrs={'class': 'form-control'}),
-            # El widget de imagen ya es automático, pero puedes ponerle clase si quieres
             'imagen': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
