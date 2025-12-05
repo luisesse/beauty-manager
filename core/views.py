@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import ProtectedError, Sum, Q
+from django.db.models import ProtectedError, Sum, Q, Case, When, Value, IntegerField
 from django.contrib import messages
 from datetime import date, datetime
 from .models import Servicio, Cita,  Cliente, Profesional, Gasto
@@ -76,12 +76,24 @@ def eliminar_servicio(request, id):
     # Si no es POST, mostramos la página de "¿Estás seguro?"
     return render(request, 'core/eliminar_servicio.html', {'servicio': servicio})
 
+
 @login_required
 def home(request):
-
     hoy = date.today()
 
-    citas_hoy = Cita.objects.filter(fecha=hoy).order_by('hora')
+    # 1 = Prioridad Alta (Pendiente/Confirmado)
+    # 2 = Prioridad Baja (Realizado/Cancelado)
+    orden_prioridad = Case(
+        When(estado='PENDIENTE', then=Value(1)),
+        When(estado='CONFIRMADO', then=Value(1)),
+        default=Value(2),  # cualquier otro van al fondo
+        output_field=IntegerField(),
+    )
+
+    citas_hoy = Cita.objects.filter(fecha=hoy).order_by(
+        orden_prioridad,  # Primero por importancia, luego por hora.
+        'hora'
+    )
 
     contexto = {
         'citas': citas_hoy,
@@ -298,6 +310,16 @@ def listado_citas(request):
             Q(cliente__apellido__icontains=busqueda) |
             Q(profesional__nombre__icontains=busqueda)
         )
+
+    # 3. FILTRO POR FECHA EXACTA (NUEVO) 📅
+    fecha_filtro = request.GET.get('fecha')
+    if fecha_filtro:
+        # Si el usuario elige una fecha, sobrescribe el filtro para mostrar esa fecha exacta
+        # (incluso si es pasada
+        citas = Cita.objects.filter(
+            fecha=fecha_filtro,
+            estado__in=['PENDIENTE', 'CONFIRMADO']
+        ).order_by('hora')
 
     return render(request, 'core/lista_citas.html', {'citas': citas})
 

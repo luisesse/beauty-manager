@@ -10,7 +10,7 @@ class Profesional(models.Model):
     imagen = models.ImageField(upload_to='profesionales/', blank=True, null=True)
 
     def __str__(self):
-        return f"{self.nombre} {self.apellido})"
+        return f"{self.nombre} {self.apellido}"
 
     def save(self, *args, **kwargs):
         # Antes de guardar, convertimos a Título o Mayúsculas
@@ -35,7 +35,7 @@ class Cliente(models.Model):
     email = models.EmailField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.nombre} {self.apellido} ({self.ci_ruc})"
+        return f"{self.nombre} {self.apellido} [{self.ci_ruc}]"
 
     def save(self, *args, **kwargs):
         self.nombre = self.nombre.title()

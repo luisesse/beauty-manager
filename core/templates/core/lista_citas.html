@@ -1,5 +1,7 @@
 {% extends 'core/base.html' %}
 
+{% load whatsapp_filters %} ```
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-calendar-month text-info"></i> Gestión de Citas (Activas)</h2>
@@ -8,15 +10,20 @@
     </a>
 </div>
 <div class="row mb-4">
-    <div class="col-md-6">
-        <form method="get" class="d-flex gap-2">
-            <input type="text" name="q" class="form-control"
-                   placeholder="Buscar por nombre, apellido o profesional"
-                   value="{{ request.GET.q }}">
-                   <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+    <div class="col-md-8">
+        <form method="get" class="d-flex gap-2 align-items-center">
 
-            {% if request.GET.q %}
-                <a href="{% url 'listado_citas' %}" class="btn btn-outline-secondary" title="Limpiar filtro">
+            <input type="text" name="q" class="form-control"
+                   placeholder="Buscar cliente o profesional..."
+                   value="{{ request.GET.q }}">
+
+            <input type="date" name="fecha" class="form-control w-auto"
+                   value="{{ request.GET.fecha }}"> <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i>
+            </button>
+
+            {% if request.GET.q or request.GET.fecha %}
+                <a href="{% url 'listado_citas' %}" class="btn btn-outline-secondary" title="Limpiar filtros">
                     <i class="bi bi-backspace-reverse"></i>
                 </a>
             {% endif %}
@@ -57,7 +64,14 @@
                             {% endif %}
                         </td>
                         <td class="text-end">
-                            <a href="{% url 'editar_cita' cita.id %}" class="btn btn-sm btn-outline-warning" title="Reprogramar">
+                            <a href="https://wa.me/{{ cita.cliente.telefono|whatsapp_url }}?text={{ cita|whatsapp_mensaje }}"
+                               target="_blank"
+                               class="btn btn-sm btn-success"
+                               title="Enviar Recordatorio">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+
+                            <a href="{% url 'editar_cita' cita.id %}" class="btn btn-sm btn-outline-secondary" title="Reprogramar Cita">
                                 Reprogramar <i class="bi bi-arrow-clockwise"></i>
                             </a>
                             
