@@ -4,7 +4,7 @@
 {% block content %}
 <div class="row mb-4">
     <div class="col-md-12 text-center">
-        <h2 class="mb-3"> <i class="bi bi-wallet2 text-info"></i> Reporte de Caja</h2>
+        <h2 class="mb-3"> <i class="bi bi-wallet2"></i> Reporte de Caja</h2>
         <p class="text-muted">
             Desde: <strong>{{ fecha_inicio }}</strong> &nbsp;|&nbsp;
             Hasta: <strong>{{ fecha_fin }}</strong>
@@ -45,17 +45,17 @@
         <div class="card text-white bg-success shadow h-100">
             <div class="card-header fw-bold">INGRESOS</div>
             <div class="card-body">
-                <h2 class="display-6 fw-bold">+ {{ total_ingresos|intcomma }} Gs.</h2>
+                <h2 class="display-6 fw-bold text-white">+ {{ total_ingresos|intcomma }} Gs.</h2>
                 <small>Citas Cobradas</small>
             </div>
         </div>
     </div>
 
     <div class="col-md-4 mb-3">
-        <div class="card text-white bg-danger shadow h-100">
+        <div class="card text-white bg-rosa-fuerte shadow h-100">
             <div class="card-header fw-bold">EGRESOS</div>
             <div class="card-body">
-                <h2 class="display-6 fw-bold">- {{ total_egresos|intcomma }} Gs.</h2>
+                <h2 class="display-6 fw-bold text-white">- {{ total_egresos|intcomma }} Gs.</h2>
                 <small>Gastos Operativos</small>
             </div>
         </div>
@@ -77,7 +77,7 @@
     <div class="col-md-6">
         <div class="card border-warning shadow-lg">
             <div class="card-header bg-warning text-dark fw-bold text-center">
-                🦁 ARQUEO DE CAJA FÍSICA (BILLETES)
+                 ARQUEO DE CAJA FÍSICA (BILLETES)
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
@@ -139,7 +139,7 @@
 <br>
 
 <div class="card shadow-sm border-danger">
-    <div class="card-header bg-danger text-white">
+    <div class="card-header bg-rosa-fuerte text-white">
         <h5 class="mb-0"> <i class="bi bi-graph-up-arrow"></i> Detalle de Gastos del Periodo</h5>
     </div>
     <div class="card-body p-0">

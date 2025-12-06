@@ -1,0 +1,144 @@
+/* 1. IMPORTAR FUENTE */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* 2. PALETA DE COLORES */
+:root {
+    --color-principal: #6f42c1;       /* Lila Oscuro (Botones, Títulos) */
+    --color-principal-hover: #5a32a3; /* Lila más oscuro (Al pasar mouse) */
+    --color-secundario: #d63384;      /* Rosa Intenso (Detalles, Bordes) */
+    --fondo-sitio: #e9ecef;           /* Gris suave (Fondo de pantalla) */
+}
+
+/* 3. ESTILOS GENERALES */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--fondo-sitio);
+    color: #495057;
+}
+
+/* 4. BARRA DE NAVEGACIÓN  */
+.navbar {
+    /* Degradado de Negro (izq) a Lila (der) */
+    background: linear-gradient(135deg, #1a1a1a 0%, #6f42c1 100%) !important;
+    /* Línea Rosa en la parte inferior */
+    border-bottom: 3px solid var(--color-secundario);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #fff !important;
+    text-transform: uppercase;
+}
+
+.nav-link {
+    color: rgba(255,255,255,0.85) !important;
+    transition: color 0.3s;
+}
+.nav-link:hover {
+    color: #fff !important;
+    text-shadow: 0 0 5px rgba(255,255,255,0.5);
+}
+
+/* 5. CONTENEDORES Y CAJAS BLANCAS */
+
+.bg-white {
+
+    background-color: #fffbfc !important;
+
+    border: 1px solid rgba(214, 51, 132, 0.25);
+
+    box-shadow: 0 10px 20px rgba(214, 51, 132, 0.1) !important;
+}
+
+/* 6. TARJETAS Y LISTAS (Efecto Flotante) */
+.card, .list-group-item {
+    border: none;
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 10px;
+}
+
+/* Al pasar el mouse, la tarjeta sube y brilla */
+.card:hover, .list-group-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(111, 66, 193, 0.2) !important; /* Sombra lila */
+    z-index: 10;
+}
+
+/* 7. BOTONES PERSONALIZADOS */
+/* Botón Principal Lila */
+.btn-primary {
+    background-color: var(--color-principal);
+    border-color: var(--color-principal);
+    font-weight: 500;
+    padding: 8px 20px;
+}
+.btn-primary:hover {
+    background-color: var(--color-principal-hover);
+    border-color: var(--color-principal-hover);
+}
+
+/* Botón Borde (Outline) -  */
+.btn-outline-primary {
+    color: var(--color-principal);
+    border-color: var(--color-principal);
+}
+.btn-outline-primary:hover {
+    background-color: var(--color-principal);
+    color: #fff;
+}
+
+/* Botones pequeños redondos (Acciones de tabla) */
+.btn-sm {
+    border-radius: 50px;
+    padding: 0.3rem 0.7rem;
+}
+
+/* 8. TABLAS ELEGANTES */
+.table thead th {
+    background-color: var(--color-principal-hover); /* Encabezado Lila */
+    color: #ffffff;
+    border: none;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    padding: 12px;
+}
+
+/* 9. TEXTOS Y TÍTULOS */
+h1, h2, h3, h4 {
+    color: var(--color-principal-hover);
+    font-weight: 700;
+}
+
+/* Forzar color lila en textos */
+.text-primary {
+    color: var(--color-principal) !important;
+}
+
+/* 1. FORZAR EL COLOR LILA EN CABECERAS DE TARJETA */
+.card-header.bg-primary {
+    background-color: var(--color-principal) !important;
+    border-bottom: none;
+}
+
+/* 2. TEXTO DEL TÍTULO DENTRO DEL HEADER */
+
+.card-header.bg-primary h2,
+.card-header.bg-primary h3,
+.card-header.bg-primary h4 {
+    color: #ffffff !important;
+    margin-bottom: 0;
+}
+
+/* 3. ARREGLO PARA EL TITULO "NUEVO CLIENTE" ESPECÍFICO */
+
+.card-header.text-white h4 {
+    color: #ffffff !important;
+}
+
+.bg-rosa-fuerte {
+    background-color: var(--color-secundario) !important;
+    color: white;
+}

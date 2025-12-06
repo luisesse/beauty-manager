@@ -68,7 +68,8 @@ def crear_servicio(request):
 
     contexto = {
         'form': form,
-        'titulo': 'Nuevo Servicio'
+        'titulo': 'Nuevo Servicio',
+        'url_cancelar': 'lista_servicios'
     }
 
     return render(request, 'core/form_servicio.html', contexto)
@@ -476,7 +477,8 @@ def crear_gasto(request):
 
     contexto = {
         'form': form,
-        'titulo': 'Registrar Nuevo Gasto'
+        'titulo': 'Registrar Nuevo Gasto',
+        'url_cancelar': 'lista_gastos'
     }
 
     return render(request, 'core/form_servicio.html', contexto)
