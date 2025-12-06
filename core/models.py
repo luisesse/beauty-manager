@@ -1,13 +1,19 @@
 from django.db import models
 from datetime import date
+from django.contrib.auth.models import User
 
 
 class Profesional(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     especialidad = models.CharField(max_length=100, blank=True, null=True)
     telefono = models.CharField(max_length=20)
     imagen = models.ImageField(upload_to='profesionales/', blank=True, null=True)
+    porcentaje_comision = models.IntegerField(
+        default=50,
+        verbose_name="Porcentaje de Comisión (%)"
+    )
 
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
@@ -67,6 +73,13 @@ class Servicio(models.Model):
 
 
 class Cita(models.Model):
+    METODOS_PAGO = [
+        ('EFECTIVO', 'Efectivo'),
+        ('TRANSFERENCIA', 'Transferencia / QR'),
+        ('TARJETA', 'Tarjeta de Débito/Crédito'),
+        ('CHEQUE', 'Cheque'),
+        ('OTRO', 'Otro'),
+    ]
     # Relaciones (Foreign Keys)
     cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name='citas')
     profesional = models.ForeignKey(Profesional, on_delete=models.PROTECT, related_name='citas')
@@ -86,6 +99,7 @@ class Cita(models.Model):
         ],
         default='PENDIENTE'
     )
+    metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO, default='EFECTIVO')
 
     def __str__(self):
         return f"Cita: {self.cliente} - {self.fecha} {self.hora}"

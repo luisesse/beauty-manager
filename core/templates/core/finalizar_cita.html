@@ -30,6 +30,11 @@
 
                 <form method="post">
                     {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-center d-block">Forma de Pago</label>
+                        {{ form.metodo_pago }}
+                    </div>
                     
                     <div class="mb-4">
                         <label class="form-label fw-bold text-center d-block">Monto a Cobrar (Gs.)</label>

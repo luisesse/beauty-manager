@@ -1,11 +1,40 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required,permission_required
 from django.db.models import ProtectedError, Sum, Q, Case, When, Value, IntegerField
 from django.contrib import messages
 from datetime import date, datetime
 from .models import Servicio, Cita,  Cliente, Profesional, Gasto
 from .forms import CitaForm, ServicioForm, ClienteForm, ProfesionalForm, CobrarCitaForm, GastoForm
 
+
+@login_required
+def home(request):
+    hoy = date.today()
+
+    # 1 = Prioridad Alta (Pendiente/Confirmado)
+    # 2 = Prioridad Baja (Realizado/Cancelado)
+    orden_prioridad = Case(
+        When(estado='PENDIENTE', then=Value(1)),
+        When(estado='CONFIRMADO', then=Value(1)),
+        default=Value(2),  # cualquier otro van al fondo
+        output_field=IntegerField(),
+    )
+
+    citas_hoy = Cita.objects.filter(fecha=hoy)
+
+    # Si el usuario es un profesional
+    if hasattr(request.user, 'profesional'):
+        citas_hoy = citas_hoy.filter(profesional=request.user.profesional)
+
+    citas_hoy = citas_hoy.order_by(orden_prioridad, 'hora')
+
+    contexto = {
+        'citas': citas_hoy,
+        'fecha_actual': hoy
+    }
+    return render(request, 'core/home.html', contexto)
+
+#--- Vistas de Servicios ---
 
 @login_required
 def listado_servicios(request):
@@ -45,6 +74,7 @@ def crear_servicio(request):
     return render(request, 'core/form_servicio.html', contexto)
 
 @login_required
+@permission_required('core.change_servicio', raise_exception=True)
 def editar_servicio(request, id):
     servicio = get_object_or_404(Servicio, pk=id)
 
@@ -64,42 +94,23 @@ def editar_servicio(request, id):
     return render(request, 'core/form_servicio.html', contexto)
 
 @login_required
+@permission_required('core.delete_servicio', raise_exception=True)
 def eliminar_servicio(request, id):
     servicio = get_object_or_404(Servicio, pk=id)
 
     if request.method == 'POST':
+        try:
+            servicio.delete()
+            messages.success(request, "El servicio fue eliminado correctamente.")
+            return redirect('lista_servicios')
+        except ProtectedError:
+            messages.error(request, f"No se puede eliminar '{servicio.nombre}' porque hay Citas que lo usan.")
 
-        servicio.delete()
-        messages.warning(request, f'El Servicio {servicio.nombre} ha sido eliminado permanentemente.')
-        return redirect('lista_servicios')
+            return redirect('lista_servicios')
 
-    # Si no es POST, mostramos la página de "¿Estás seguro?"
     return render(request, 'core/eliminar_servicio.html', {'servicio': servicio})
 
-
-@login_required
-def home(request):
-    hoy = date.today()
-
-    # 1 = Prioridad Alta (Pendiente/Confirmado)
-    # 2 = Prioridad Baja (Realizado/Cancelado)
-    orden_prioridad = Case(
-        When(estado='PENDIENTE', then=Value(1)),
-        When(estado='CONFIRMADO', then=Value(1)),
-        default=Value(2),  # cualquier otro van al fondo
-        output_field=IntegerField(),
-    )
-
-    citas_hoy = Cita.objects.filter(fecha=hoy).order_by(
-        orden_prioridad,  # Primero por importancia, luego por hora.
-        'hora'
-    )
-
-    contexto = {
-        'citas': citas_hoy,
-        'fecha_actual': hoy
-    }
-    return render(request, 'core/home.html', contexto)
+#--- Vista Clientes ---
 
 @login_required
 def listado_clientes(request):
@@ -133,6 +144,7 @@ def detalle_cliente(request, id):
     return render(request, 'core/detalle_cliente.html', contexto)
 
 @login_required
+@permission_required('core.add_cliente', raise_exception=True)
 def crear_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)
@@ -146,6 +158,8 @@ def crear_cliente(request):
 
     return render(request, 'core/form_cliente.html', {'form': form, 'titulo': 'Nuevo Cliente'})
 
+@login_required
+@permission_required('core.change_cliente', raise_exception=True)
 def editar_cliente(request, id):
 
     cliente = get_object_or_404(Cliente, pk=id)
@@ -167,6 +181,7 @@ def editar_cliente(request, id):
     return render(request, 'core/form_cliente.html', contexto)
 
 @login_required
+@permission_required('core.delete_cliente', raise_exception=True)
 def eliminar_cliente(request, id):
     cliente = get_object_or_404(Cliente, pk=id)
 
@@ -182,6 +197,8 @@ def eliminar_cliente(request, id):
             return render(request, 'core/eliminar_cliente.html', {'cliente': cliente, 'error': messages.error})
 
     return render(request, 'core/eliminar_cliente.html', {'cliente': cliente})
+
+#--- Vistas Profesionales ---
 
 @login_required
 def listado_profesional(request):
@@ -201,6 +218,7 @@ def listado_profesional(request):
     return render(request, 'core/lista_profesional.html', {'profesional': profesional})
 
 @login_required
+@permission_required('core.add_profesional', raise_exception=True)
 def crear_profesional(request):
     if request.method == 'POST':
         form = ProfesionalForm(request.POST, request.FILES)
@@ -214,6 +232,8 @@ def crear_profesional(request):
 
     return render(request, 'core/form_profesional.html', {'form': form, 'titulo': 'Nuevo Profesional'})
 
+@login_required
+@permission_required('core.change_profesional', raise_exception=True)
 def editar_profesional(request, id):
 
     profesional = get_object_or_404(Profesional, pk=id)
@@ -235,6 +255,7 @@ def editar_profesional(request, id):
     return render(request, 'core/form_profesional.html', contexto)
 
 @login_required
+@permission_required('core.delete_profesional', raise_exception=True)
 def eliminar_profesional(request, id):
     profesional = get_object_or_404(Profesional, pk=id)
 
@@ -303,6 +324,9 @@ def listado_citas(request):
         estado__in=['PENDIENTE', 'CONFIRMADO']
     ).order_by('fecha', 'hora')
 
+    if hasattr(request.user, 'profesional'):
+        citas = citas.filter(profesional=request.user.profesional)
+
     busqueda = request.GET.get('q')
     if busqueda:
         citas = citas.filter(
@@ -315,11 +339,14 @@ def listado_citas(request):
     fecha_filtro = request.GET.get('fecha')
     if fecha_filtro:
         # Si el usuario elige una fecha, sobrescribe el filtro para mostrar esa fecha exacta
-        # (incluso si es pasada
+        # incluso si es pasada
         citas = Cita.objects.filter(
             fecha=fecha_filtro,
             estado__in=['PENDIENTE', 'CONFIRMADO']
         ).order_by('hora')
+
+        if hasattr(request.user, 'profesional'):
+            citas = citas.filter(profesional=request.user.profesional)
 
     return render(request, 'core/lista_citas.html', {'citas': citas})
 
@@ -370,9 +397,12 @@ def confirmar_cita(request, id):
     cita.save()
     return redirect('home')
 
-#---Vista de Caja---
+
+
+#---Vistas Financieras---
 
 @login_required
+@permission_required('core.view_gasto', raise_exception=True)
 def reporte_caja(request):
     # Valores por defecto: Hoy
     fecha_inicio = date.today()
@@ -394,14 +424,22 @@ def reporte_caja(request):
 
     total_ingresos = citas.aggregate(total=Sum('monto_cobrado'))['total'] or 0
 
-    # 2. EGRESOS
-    gastos = Gasto.objects.filter(
-        fecha__range=[fecha_inicio, fecha_fin]
-    ).order_by('fecha')
+    # --- DESGLOSE POR TIPO DE PAGO ---
+    # Efectivo
+    ingresos_efectivo = citas.filter(metodo_pago='EFECTIVO').aggregate(t=Sum('monto_cobrado'))['t'] or 0
+    # Banco - QR/TC/TD/SIPAP
+    ingresos_digital = total_ingresos - ingresos_efectivo
 
+    # EGRESOS
+    # Gastos de caja chica en efectivo
+    gastos = Gasto.objects.filter(fecha__range=[fecha_inicio, fecha_fin])
     total_egresos = gastos.aggregate(total=Sum('monto'))['total'] or 0
 
+    # SALDO FINAL DEL DÍA
     saldo_neto = total_ingresos - total_egresos
+
+    # Efectivo que entró - Gastos que pagué en efectivo
+    caja_fisica = ingresos_efectivo - total_egresos
 
     contexto = {
         'citas': citas,
@@ -409,15 +447,17 @@ def reporte_caja(request):
         'total_ingresos': total_ingresos,
         'total_egresos': total_egresos,
         'saldo_neto': saldo_neto,
+        'ingresos_efectivo': ingresos_efectivo,
+        'ingresos_digital': ingresos_digital,
+        'caja_fisica': caja_fisica,
         'fecha_inicio': fecha_inicio,
         'fecha_fin': fecha_fin
     }
     return render(request, 'core/reporte_caja.html', contexto)
 
 
-#---Vistas de Gastos---
-
 @login_required
+@permission_required('core.view_gasto', raise_exception=True)
 def lista_gastos(request):
     gastos = Gasto.objects.all().order_by('-fecha', '-id')
     return render(request, 'core/lista_gastos.html', {'gastos': gastos})
@@ -440,3 +480,94 @@ def crear_gasto(request):
     }
 
     return render(request, 'core/form_servicio.html', contexto)
+
+
+@login_required
+@permission_required('core.delete_gasto', raise_exception=True)
+def liquidacion_comisiones(request):
+
+    fecha_inicio = date.today().replace(day=1)  # Por defecto, primer día del mes actual
+    fecha_fin = date.today()
+    profesionales = Profesional.objects.all()
+
+    # Definir Variables de resultado
+    profesional_elegido = None
+    citas = []
+    total_cobrado = 0
+    monto_comision = 0
+
+    # Filtro buscar
+    profesional_id = request.GET.get('profesional_id')
+    fecha_ini_get = request.GET.get('fecha_inicio')
+    fecha_fin_get = request.GET.get('fecha_fin')
+
+    if profesional_id and fecha_ini_get and fecha_fin_get:
+        try:
+            # Convertir fechas de texto a objetos date
+            fecha_inicio = datetime.strptime(fecha_ini_get, '%Y-%m-%d').date()
+            fecha_fin = datetime.strptime(fecha_fin_get, '%Y-%m-%d').date()
+
+            profesional_elegido = get_object_or_404(Profesional, pk=profesional_id)
+
+            # Obtener las Ctas con estado Realizada del profesional en ese rango de fechas
+            citas = Cita.objects.filter(
+                profesional=profesional_elegido,
+                fecha__range=[fecha_inicio, fecha_fin],
+                estado='REALIZADO'
+            ).order_by('fecha', 'hora')
+
+            # Suma lo cobrado por el profesional por cada servicio.
+            total_cobrado = citas.aggregate(total=Sum('monto_cobrado'))['total'] or 0
+
+            # Calcular la comisión.
+            monto_comision = (total_cobrado * profesional_elegido.porcentaje_comision) / 100
+
+        except ValueError:
+            pass  # Si hay error de fechas, nada
+
+    contexto = {
+        'profesionales': profesionales,
+        'profesional_elegido': profesional_elegido,
+        'citas': citas,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'total_cobrado': total_cobrado,
+        'monto_comision': monto_comision
+    }
+    return render(request, 'core/liquidacion_comisiones.html', contexto)
+
+@login_required
+def mis_comisiones(request):
+
+    if not hasattr(request.user, 'profesional'):
+        return redirect('home')
+
+    profesional = request.user.profesional
+    fecha_inicio = date.today().replace(day=1)
+    fecha_fin = date.today()
+
+    if request.GET.get('fecha_inicio') and request.GET.get('fecha_fin'):
+        try:
+            fecha_inicio = datetime.strptime(request.GET.get('fecha_inicio'), '%Y-%m-%d').date()
+            fecha_fin = datetime.strptime(request.GET.get('fecha_fin'), '%Y-%m-%d').date()
+        except ValueError:
+            pass
+
+    citas = Cita.objects.filter(
+        profesional=profesional,
+        fecha__range=[fecha_inicio, fecha_fin],
+        estado='REALIZADO'
+    ).order_by('fecha')
+
+    total_vendido = citas.aggregate(t=Sum('monto_cobrado'))['t'] or 0
+    mi_comision = (total_vendido * profesional.porcentaje_comision) / 100
+
+    contexto = {
+        'citas': citas,
+        'total_vendido': total_vendido,
+        'mi_comision': mi_comision,
+        'profesional': profesional,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin
+    }
+    return render(request, 'core/mis_comisiones.html', contexto)

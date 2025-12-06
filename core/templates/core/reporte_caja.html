@@ -73,7 +73,37 @@
         </div>
     </div>
 </div>
+<div class="row justify-content-center mb-4">
+    <div class="col-md-6">
+        <div class="card border-warning shadow-lg">
+            <div class="card-header bg-warning text-dark fw-bold text-center">
+                🦁 ARQUEO DE CAJA FÍSICA (BILLETES)
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+                    <span>Entrada Efectivo:</span>
+                    <span class="fw-bold text-success">+ {{ ingresos_efectivo|intcomma }} Gs.</span>
+                </div>
+                <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+                    <span>Entrada Digital (QR/Banco):</span>
+                    <span class="text-muted">{{ ingresos_digital|intcomma }} Gs.</span>
+                </div>
+                <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+                    <span>Salida Gastos:</span>
+                    <span class="fw-bold text-danger">- {{ total_egresos|intcomma }} Gs.</span>
+                </div>
 
+                <div class="d-flex justify-content-between pt-2">
+                    <h4 class="fw-bold">DINERO EN CAJÓN:</h4>
+                    <h3 class="fw-bold text-dark">{{ caja_fisica|intcomma }} Gs.</h3>
+                </div>
+            </div>
+            <div class="card-footer text-muted small text-center">
+                * Esto es lo que se debe tener en mano antes de cerrar.
+            </div>
+        </div>
+    </div>
+</div>
 <div class="card shadow-sm">
     <div class="card-body p-0">
         <table class="table table-striped mb-0">

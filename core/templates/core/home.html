@@ -5,7 +5,9 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1><i class="bi bi-calendar-date text-info"></i> Agenda del Día <small class="text-muted fs-5">{{ fecha_actual }}</small></h1>
-    <a href="{% url 'agendar_cita' %}" class="btn btn-primary"> <i class="bi bi-file-earmark-plus"></i> Agendar Cita</a>
+    {% if perms.core.add_cita %}
+        <a href="{% url 'agendar_cita' %}" class="btn btn-primary"> <i class="bi bi-file-earmark-plus"></i> Agendar Cita</a>
+    {% endif %}
 </div>
 
 <div class="card shadow-sm">
@@ -24,8 +26,6 @@
             <tbody>
                 {% for cita in citas %}
                     <tr class="{% if cita.estado == 'REALIZADO' or cita.estado == 'CANCELADO' %}opacity-50 bg-light{% endif %}">
-
-                        <td class="fw-bold">{{ cita.hora }}</td>
 
                         <td class="fw-bold">{{ cita.hora }}</td>
                         <td>
@@ -56,12 +56,13 @@
                                 </a>
                             {% endif %}
 
-                            {% if cita.estado == 'PENDIENTE' or cita.estado == 'CONFIRMADO' %}
-                                <a href="{% url 'finalizar_cita' cita.id %}" class="btn btn-outline-success" title="Cobrar y Finalizar">
-                                    Cobrar <i class="bi bi-cash-coin"></i>
-                                </a>
+                            {% if cita.estado != 'REALIZADO' and cita.estado != 'CANCELADO' %}
+                                {% if perms.core.add_cita %}
+                                    <a href="{% url 'finalizar_cita' cita.id %}" class="btn btn-outline-success" title="Cobrar y Finalizar">
+                                        Cobrar <i class="bi bi-cash-coin"></i>
+                                    </a>
+                                {% endif %}
                             {% endif %}
-
                         </td>
                     </tr>
                 {% empty %}

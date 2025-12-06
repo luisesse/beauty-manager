@@ -38,10 +38,28 @@
                     <a class="nav-link" href="{% url 'lista_servicios' %}">Servicios</a>
                     <a class="nav-link" href="{% url 'listado_clientes' %}">Clientes</a>
                     <a class="nav-link" href="{% url 'listado_profesional' %}">Profesionales</a>
-                    <a class="nav-link" href="{% url 'reporte_caja' %}"> <i class="bi bi-wallet2 text-info"></i> Caja</a>
-                    <a class="nav-link" href="{% url 'lista_gastos' %}">Gastos</a>
-                </div>
+                    {% if user.profesional %}
+                        <a class="nav-link" href="{% url 'mis_comisiones' %}"> <i class="bi bi-cash-coin"></i> Mis Ganancias</a>
+                    {% endif %}
+                    {% if perms.core.view_gasto %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-wallet2 text-info"></i> Finanzas
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'lista_gastos' %}">Control de Gastos</a></li>
+                                <li><a class="dropdown-item" href="{% url 'reporte_caja' %}">Caja Diaria / Mensual</a></li>
+                                {% if perms.core.delete_gasto %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'liquidacion_comisiones' %}">
+                                        Liquidación Comisiones</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                    {% endif %}
 
+                </div>
                 <div class="navbar-nav ms-auto">
                     <span class="navbar-text me-3">Hola, <strong>{{ user.username }}</strong></span>
 

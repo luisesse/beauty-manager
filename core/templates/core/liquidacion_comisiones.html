@@ -1,0 +1,108 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 text-center">
+        <h2 class="mb-3"> <i class="bi bi-cash-stack text-success"></i>  Liquidación de Comisiones</h2>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4 bg-light">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end justify-content-center">
+            
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">Profesional:</label>
+                <select name="profesional_id" class="form-select select2" required>
+                    <option value="">Seleccione...</option>
+                    {% for p in profesionales %}
+                        <option value="{{ p.id }}" 
+                            {% if profesional_elegido.id == p.id %}selected{% endif %}>
+                            {{ p.nombre }} {{ p.apellido }} ({{ p.porcentaje_comision }}%)
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">Desde:</label>
+                <input type="date" name="fecha_inicio" class="form-control" 
+                       value="{{ fecha_inicio|date:'Y-m-d' }}" required>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">Hasta:</label>
+                <input type="date" name="fecha_fin" class="form-control" 
+                       value="{{ fecha_fin|date:'Y-m-d' }}" required>
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-calculator"></i> Calcular
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if profesional_elegido %}
+    <div class="row mb-4 text-center align-items-stretch"> <div class="col-md-6 mb-2">
+            <div class="card shadow-sm border-secondary h-100"> <div class="card-header bg-secondary text-white fw-bold">TOTAL VENDIDO</div>
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <h2 class="fw-bold text-dark">{{ total_cobrado|intcomma }} Gs.</h2>
+                    <small class="text-muted">Facturación bruta generada</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-2">
+            <div class="card shadow border-success h-100"> <div class="card-header bg-success text-white fw-bold">
+                    COMISIÓN A PAGAR ({{ profesional_elegido.porcentaje_comision }}%)
+                </div>
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <h2 class="fw-bold text-success">{{ monto_comision|intcomma }} Gs.</h2>
+                    <small class="text-muted">Monto líquido a entregar</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0"> <i class="bi bi-journal-check text-info"></i> Detalle de Servicios Realizados</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th class="text-end">Cobrado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cita in citas %}
+                        <tr>
+                            <td>{{ cita.fecha|date:"d/m" }}</td>
+                            <td>{{ cita.hora }}</td>
+                            <td>{{ cita.cliente.nombre }} {{ cita.cliente.apellido }}</td>
+                            <td>{{ cita.servicio.nombre }}</td>
+                            <td class="text-end fw-bold">{{ cita.monto_cobrado|intcomma }} Gs.</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                No se encontraron servicios realizados en este periodo.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}

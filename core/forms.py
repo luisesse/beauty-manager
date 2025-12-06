@@ -83,11 +83,14 @@ class CitaForm(forms.ModelForm):
 class CobrarCitaForm(forms.ModelForm):
     class Meta:
         model = Cita
-        fields = ['monto_cobrado']
+        fields = ['monto_cobrado', 'metodo_pago']
         widgets = {
             'monto_cobrado': forms.NumberInput(attrs={
                 'class': 'form-control form-control-lg text-center fw-bold text-success',
                 'placeholder': 'Ingrese monto'
+            }),
+            'metodo_pago': forms.Select(attrs={
+                'class': 'form-select form-select-lg text-center'
             }),
         }
 
@@ -117,12 +120,19 @@ class ClienteForm(forms.ModelForm):
 class ProfesionalForm(forms.ModelForm):
     class Meta:
         model = Profesional
-        fields = ['nombre', 'apellido', 'especialidad', 'telefono', 'imagen'] # <--- Agrega imagen
+        fields = ['nombre', 'apellido', 'especialidad', 'telefono', 'imagen', 'usuario', 'porcentaje_comision']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'apellido': forms.TextInput(attrs={'class': 'form-control'}),
             'especialidad': forms.TextInput(attrs={'class': 'form-control'}),
             'telefono': forms.TextInput(attrs={'class': 'form-control'}),
+            'usuario': forms.Select(attrs={'class': 'form-select select2'}),
+            'porcentaje_comision': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'max': '100',
+                'placeholder': 'Ej: 50'
+            }),
             'imagen': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
