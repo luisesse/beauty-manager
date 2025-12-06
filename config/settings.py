@@ -27,7 +27,18 @@ SECRET_KEY = 'django-insecure-_zsjb8o2)11hk8+p1v+%nq@^7xv5cg@@@3hy86fhnw80=dzb@+
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['beauty-manager.onrender.com', 'localhost', '127.0.0.1']
+import os
+
+# 2. Configuración dinámica de Hosts Permitidos
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS = [f'https://{RENDER_EXTERNAL_HOSTNAME}']
 
 
 # Application definition
