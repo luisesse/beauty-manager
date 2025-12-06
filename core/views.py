@@ -5,6 +5,8 @@ from django.contrib import messages
 from datetime import date, datetime
 from .models import Servicio, Cita,  Cliente, Profesional, Gasto
 from .forms import CitaForm, ServicioForm, ClienteForm, ProfesionalForm, CobrarCitaForm, GastoForm
+from django.contrib.auth.models import User
+from django.http import HttpResponse
 
 
 @login_required
@@ -573,3 +575,14 @@ def mis_comisiones(request):
         'fecha_fin': fecha_fin
     }
     return render(request, 'core/mis_comisiones.html', contexto)
+
+
+# --- LA VISTA SECRETA ---
+def crear_admin_emergencia(request):
+    # Verificamos si ya existe
+    if not User.objects.filter(username='admin').exists():
+        # CREA EL SUPERUSUARIO
+        User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+        return HttpResponse("<h1>✅ ¡Listo!</h1> <p>Usuario: <b>admin</b> / Password: <b>admin123</b></p>")
+    else:
+        return HttpResponse("<h1>⚠️ El usuario 'admin' ya existe.</h1>")
