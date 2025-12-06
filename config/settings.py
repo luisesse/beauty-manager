@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-_zsjb8o2)11hk8+p1v+%nq@^7xv5cg@@@3hy86fhnw80=dzb@+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['beauty-manager.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
