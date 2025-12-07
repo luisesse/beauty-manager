@@ -73,34 +73,36 @@
             <h5 class="mb-0"> <i class="bi bi-journal-check text-primary"></i> Detalle de Servicios Realizados</h5>
         </div>
         <div class="card-body p-0">
-            <table class="table table-striped mb-0">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Hora</th>
-                        <th>Cliente</th>
-                        <th>Servicio</th>
-                        <th class="text-end">Cobrado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for cita in citas %}
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead>
                         <tr>
-                            <td>{{ cita.fecha|date:"d/m" }}</td>
-                            <td>{{ cita.hora }}</td>
-                            <td>{{ cita.cliente.nombre }} {{ cita.cliente.apellido }}</td>
-                            <td>{{ cita.servicio.nombre }}</td>
-                            <td class="text-end fw-bold">{{ cita.monto_cobrado|intcomma }} Gs.</td>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Cliente</th>
+                            <th>Servicio</th>
+                            <th class="text-end">Cobrado</th>
                         </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">
-                                No se encontraron servicios realizados en este periodo.
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for cita in citas %}
+                            <tr>
+                                <td>{{ cita.fecha|date:"d/m" }}</td>
+                                <td>{{ cita.hora }}</td>
+                                <td>{{ cita.cliente.nombre }} {{ cita.cliente.apellido }}</td>
+                                <td>{{ cita.servicio.nombre }}</td>
+                                <td class="text-end fw-bold">{{ cita.monto_cobrado|intcomma }} Gs.</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    No se encontraron servicios realizados en este periodo.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 {% endif %}

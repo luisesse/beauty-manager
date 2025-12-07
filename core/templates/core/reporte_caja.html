@@ -106,34 +106,36 @@
 </div>
 <div class="card shadow-sm">
     <div class="card-body p-0">
-        <table class="table table-striped mb-0">
-            <thead>
-                <tr>
-                    <th>Fecha</th> <th>Hora</th>
-                    <th>Cliente</th>
-                    <th>Servicio</th>
-                    <th>Profesional</th>
-                    <th class="text-end">Monto</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for cita in citas %}
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead>
                     <tr>
-                        <td class="fw-bold text-muted">{{ cita.fecha|date:"d/m" }}</td> <td>{{ cita.hora }}</td>
-                        <td>{{ cita.cliente.nombre }} {{ cita.cliente.apellido }}</td>
-                        <td>{{ cita.servicio.nombre }}</td>
-                        <td>{{ cita.profesional.nombre }}</td>
-                        <td class="text-end fw-bold">{{ cita.monto_cobrado|intcomma }} Gs.</td>
+                        <th>Fecha</th> <th>Hora</th>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th>Profesional</th>
+                        <th class="text-end">Monto</th>
                     </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center py-4 text-muted">
-                            No hay movimientos en este rango de fechas.
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for cita in citas %}
+                        <tr>
+                            <td class="fw-bold text-muted">{{ cita.fecha|date:"d/m" }}</td> <td>{{ cita.hora }}</td>
+                            <td>{{ cita.cliente.nombre }} {{ cita.cliente.apellido }}</td>
+                            <td>{{ cita.servicio.nombre }}</td>
+                            <td>{{ cita.profesional.nombre }}</td>
+                            <td class="text-end fw-bold">{{ cita.monto_cobrado|intcomma }} Gs.</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                No hay movimientos en este rango de fechas.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 <br>
@@ -143,32 +145,34 @@
         <h5 class="mb-0"> <i class="bi bi-graph-up-arrow"></i> Detalle de Gastos del Periodo</h5>
     </div>
     <div class="card-body p-0">
-        <table class="table table-striped mb-0">
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Descripción</th>
-                    <th>Categoría</th>
-                    <th class="text-end">Monto</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for gasto in gastos %}
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead>
                     <tr>
-                        <td>{{ gasto.fecha|date:"d/m" }}</td>
-                        <td>{{ gasto.descripcion }}</td>
-                        <td><small class="badge bg-secondary">{{ gasto.categoria.nombre }}</small></td>
-                        <td class="text-end text-danger fw-bold">- {{ gasto.monto|intcomma }} Gs.</td>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Categoría</th>
+                        <th class="text-end">Monto</th>
                     </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center py-3 text-muted">
-                            No hubo gastos en este periodo.
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for gasto in gastos %}
+                        <tr>
+                            <td>{{ gasto.fecha|date:"d/m" }}</td>
+                            <td>{{ gasto.descripcion }}</td>
+                            <td><small class="badge bg-secondary">{{ gasto.categoria.nombre }}</small></td>
+                            <td class="text-end text-danger fw-bold">- {{ gasto.monto|intcomma }} Gs.</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3 text-muted">
+                                No hubo gastos en este periodo.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
