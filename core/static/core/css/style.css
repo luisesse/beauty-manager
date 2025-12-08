@@ -142,3 +142,22 @@ h1, h2, h3, h4 {
     background-color: var(--color-secundario) !important;
     color: white;
 }
+
+/* --- AJUSTES PARA MÓVIL (MEDIA QUERIES) --- */
+@media (max-width: 768px) {
+    /* Cuando la pantalla sea menor a 768px (Celulares) */
+
+    h1, h2 {
+        font-size: 1.5rem !important;
+    }
+
+    h3, h4, .card-header {
+        font-size: 1.1rem !important;
+    }
+
+    /* Ajustar el botón principal "Agendar Cita" si es muy grande */
+    .btn-lg {
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+    }
+}

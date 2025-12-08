@@ -75,11 +75,13 @@
                                 </a>
 
                                 <a href="{% url 'editar_cita' cita.id %}" class="btn btn-sm btn-outline-secondary" title="Reprogramar Cita">
-                                    Reprogramar <i class="bi bi-arrow-clockwise"></i>
+                                    span class="d-none d-md-inline">Reprogramar</span>
+                                    <i class="bi bi-arrow-clockwise"></i>
                                 </a>
                                 {% if perms.core.add_cita %}
                                     <a href="{% url 'cancelar_cita' cita.id %}" class="btn btn-sm btn-outline-danger" title="Cancelar Cita">
-                                        Cancelar <i class="bi bi-x-octagon"></i>
+                                        <span class="d-none d-md-inline">Cancelar</span>
+                                        <i class="bi bi-x-octagon"></i>
                                     </a>
                                 {% endif %}
                             </td>
