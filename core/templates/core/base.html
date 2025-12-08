@@ -27,54 +27,77 @@
 </head>
 <body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold fst-italic" href="{% url 'home' %}">
-                <i class="bi bi-scissors"></i> BeautyManager
-            </a>
 
-            {% if user.is_authenticated %}
-                <div class="navbar-nav me-auto">
-                    <a class="nav-link" href="{% url 'home' %}">Inicio</a>
-                    <a class="nav-link" href="{% url 'listado_citas' %}">Citas</a>
-                    <a class="nav-link" href="{% url 'lista_servicios' %}">Servicios</a>
-                    <a class="nav-link" href="{% url 'listado_clientes' %}">Clientes</a>
-                    <a class="nav-link" href="{% url 'listado_profesional' %}">Profesionales</a>
-                    {% if user.profesional %}
-                        <a class="nav-link" href="{% url 'mis_comisiones' %}"> <i class="bi bi-cash-coin"></i> Mis Ganancias</a>
-                    {% endif %}
-                    {% if perms.core.view_gasto %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-wallet2 text-info"></i> Finanzas
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'lista_gastos' %}">Control de Gastos</a></li>
-                                <li><a class="dropdown-item" href="{% url 'reporte_caja' %}">Caja Diaria / Mensual</a></li>
-                                {% if perms.core.delete_gasto %}
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'liquidacion_comisiones' %}">
-                                        Liquidación Comisiones</a>
-                                    </li>
-                                {% endif %}
-                            </ul>
+       <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'home' %}">
+                    <i class="bi bi-scissors"></i> BeautyManager
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'home' %}">Inicio</a>
                         </li>
-                    {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'listado_citas' %}">Citas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'lista_servicios' %}">Servicios</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'listado_clientes' %}">Clientes</a>
+                        </li>
+
+                        {% if user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'listado_profesional' %}">Profesionales</a>
+                        </li>
+                        {% endif %}
+
+                        {% if perms.core.view_gasto %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-wallet2 text-info"></i> Finanzas
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'lista_gastos' %}">Control de Gastos</a></li>
+                                    {% if perms.core.delete_gasto %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'reporte_caja' %}">  Caja Diaria</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'liquidacion_comisiones' %}"> Comisiones</a></li>
+                                    {% endif %}
+                                </ul>
+                            </li>
+                        {% endif %}
+
+                        {% if user.profesional %}
+                            <li class="nav-item">
+                                 <a class="nav-link" href="{% url 'mis_comisiones' %}"> <i class="bi bi-cash-coin"></i> Mis Ganancias</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+
+                    <div class="d-flex align-items-center ms-lg-3 mt-3 mt-lg-0">
+                        {% if user.is_authenticated %}
+                            <span class="text-white-50 me-3 small">Hola, <strong>{{ user.username }}</strong></span>
+                            <form action="{% url 'logout' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-light btn-sm">
+                                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
 
                 </div>
-                <div class="navbar-nav ms-auto">
-                    <span class="navbar-text me-3">Hola, <strong>{{ user.username }}</strong></span>
-
-                    <form action="{% url 'logout' %}" method="post" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-light">
-                            <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
-                        </button>
-                    </form>
-                </div>
-            {% endif %}
-        </div>
-    </nav>
+            </div>
+       </nav>
 
     <div class="container mt-3">
         {% if messages %}

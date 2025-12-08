@@ -89,7 +89,8 @@ def editar_servicio(request, id):
 
     contexto = {
         'form': form,
-        'titulo': 'Editar Servicio'
+        'titulo': 'Editar Servicio',
+        'url_cancelar': 'lista_servicios'
     }
 
     return render(request, 'core/form_servicio.html', contexto)
