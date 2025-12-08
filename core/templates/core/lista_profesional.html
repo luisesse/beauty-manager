@@ -59,12 +59,12 @@
                             <td>
                                 <div class="btn-group btn-group-sm">
                                     {% if perms.core.change_profesional %}
-                                        <a href="{% url 'editar_profesional' profesional.id %}" class="btn btn-outline-secondary">
+                                        <a href="{% url 'editar_profesional' profesional.id %}" class="btn btn-sm btn-outline-secondary">
                                             Editar <i class="bi bi-pencil-square"></i>
                                         </a>
                                     {% endif %}
                                     {% if perms.core.delete_profesional %}
-                                        <a href="{% url 'eliminar_profesional' profesional.id %}" class="btn btn-outline-danger">
+                                        <a href="{% url 'eliminar_profesional' profesional.id %}" class="btn btn-sm btn-outline-danger">
                                             Eliminar <i class="bi bi-trash bi-lg"></i>
                                         </a>
                                     {% endif %}
