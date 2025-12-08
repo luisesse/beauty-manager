@@ -92,7 +92,7 @@ body {
 
 /* Botones pequeños redondos (Acciones de tabla) */
 .btn-sm {
-    border-radius: 50px;
+    border-radius: 13px;
     padding: 0.3rem 0.7rem;
 }
 
@@ -160,4 +160,29 @@ h1, h2, h3, h4 {
         padding: 0.375rem 0.75rem;
         font-size: 1rem;
     }
+}
+
+/* --- UTILIDADES PERSONALIZADAS --- */
+
+/* 1. TEXTO ROSA  */
+.text-rosa-fuerte {
+    color: var(--color-secundario) !important;
+}
+
+/* 2. BOTÓN ROSA SÓLIDO (Para "Registrar Gastos") */
+.btn-rosa-fuerte {
+    background-color: var(--color-secundario);
+    border-color: var(--color-secundario);
+    color: #fff; /* Texto blanco */
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 8px 20px;
+}
+
+/* Efecto al pasar el mouse  */
+.btn-rosa-fuerte:hover {
+    background-color: #c22e76; /* Un rosa un poco más oscuro */
+    border-color: #c22e76;
+    color: #fff;
 }
