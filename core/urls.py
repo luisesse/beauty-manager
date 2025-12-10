@@ -27,4 +27,6 @@ urlpatterns = [
     path('gastos/nuevo/', views.crear_gasto, name='crear_gasto'),
     path('comisiones/', views.liquidacion_comisiones, name='liquidacion_comisiones'),
     path('mis-comisiones/', views.mis_comisiones, name='mis_comisiones'),
+    path('horarios/', views.listado_horarios, name='listado_horarios'),
+    path('horarios/editar/<int:id>/', views.editar_horario, name='editar_horario'),
 ]

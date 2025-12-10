@@ -58,14 +58,14 @@
                             <td class="text-end">
 
                                 {% if cita.estado == 'PENDIENTE' %}
-                                    <a href="{% url 'confirmar_cita' cita.id %}" class="btn btn-outline-primary" title="Confirmar Asistencia">
+                                    <a href="{% url 'confirmar_cita' cita.id %}" class="btn btn-sm btn-outline-primary" title="Confirmar Asistencia">
                                        Confirmar <i class="bi bi-check2-circle"></i>
                                     </a>
                                 {% endif %}
 
                                 {% if cita.estado != 'REALIZADO' and cita.estado != 'CANCELADO' %}
                                     {% if perms.core.add_cita %}
-                                        <a href="{% url 'finalizar_cita' cita.id %}" class="btn btn-outline-success" title="Cobrar y Finalizar">
+                                        <a href="{% url 'finalizar_cita' cita.id %}" class="btn btn-sm btn-outline-success" title="Cobrar y Finalizar">
                                             Cobrar <i class="bi bi-cash-coin"></i>
                                         </a>
                                     {% endif %}

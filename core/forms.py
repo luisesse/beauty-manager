@@ -167,3 +167,13 @@ class GastoForm(forms.ModelForm):
 
         if self.empresa:
             self.fields['categoria'].queryset = CategoriaGasto.objects.filter(empresa=self.empresa)
+
+class HorarioForm(forms.ModelForm):
+    class Meta:
+        model = HorarioAtencion
+        fields = ['hora_inicio', 'hora_fin', 'abierto']
+        widgets = {
+            'hora_inicio': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'hora_fin': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'abierto': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }

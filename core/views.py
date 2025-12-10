@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required,permission_required
 from django.db.models import ProtectedError, Sum, Q, Case, When, Value, IntegerField
 from django.contrib import messages
 from datetime import date, datetime
-from .models import Servicio, Cita,  Cliente, Profesional, Gasto
-from .forms import CitaForm, ServicioForm, ClienteForm, ProfesionalForm, CobrarCitaForm, GastoForm
+from .models import Servicio, Cita,  Cliente, Profesional, Gasto, HorarioAtencion
+from .forms import CitaForm, ServicioForm, ClienteForm, ProfesionalForm, CobrarCitaForm, GastoForm, HorarioForm
 
 
 # --- FUNCIÓN AUXILIAR PARA SAAS ---
@@ -658,4 +658,38 @@ def mis_comisiones(request):
         'fecha_fin': fecha_fin
     }
     return render(request, 'core/mis_comisiones.html', contexto)
+
+
+
+
+@login_required
+def listado_horarios(request):
+    mi_empresa = obtener_mi_empresa(request)
+
+    horarios = HorarioAtencion.objects.filter(empresa=mi_empresa).order_by('dia_semana')
+    return render(request, 'core/lista_horarios.html', {'horarios': horarios})
+
+@login_required
+@permission_required('core.change_horarioatencion', raise_exception=True)
+def editar_horario(request, id):
+    mi_empresa = obtener_mi_empresa(request)
+    # Solo editamos si el horario pertenece a MI empresa
+    horario = get_object_or_404(HorarioAtencion, pk=id, empresa=mi_empresa)
+
+    if request.method == 'POST':
+        form = HorarioForm(request.POST, instance=horario)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Horario del {horario.get_dia_semana_display()} actualizado.")
+            return redirect('listado_horarios')
+    else:
+        form = HorarioForm(instance=horario)
+
+    contexto = {
+        'form': form,
+        'titulo': f'Editar Horario: {horario.get_dia_semana_display()}',
+        'url_cancelar': 'listado_horarios'
+    }
+
+    return render(request, 'core/form_servicio.html', contexto)
 

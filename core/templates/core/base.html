@@ -54,7 +54,7 @@
                             <a class="nav-link" href="{% url 'listado_clientes' %}">Clientes</a>
                         </li>
 
-                        {% if perms.core.view_gasto %}
+                        {% if perms.core.view_profesional %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'listado_profesional' %}">Profesionales</a>
                         </li>
@@ -79,6 +79,13 @@
                         {% if user.profesional and user.profesional.porcentaje_comision > 0 %}
                             <li class="nav-item">
                                  <a class="nav-link" href="{% url 'mis_comisiones' %}"> <i class="bi bi-cash-coin"></i> Mis Ganancias</a>
+                            </li>
+                        {% endif %}
+                        {% if perms.core.change_horarioatencion %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'listado_horarios' %}">
+                                    <i class="bi bi-clock"></i> Horarios
+                                </a>
                             </li>
                         {% endif %}
                     </ul>
