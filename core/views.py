@@ -7,9 +7,22 @@ from .models import Servicio, Cita,  Cliente, Profesional, Gasto
 from .forms import CitaForm, ServicioForm, ClienteForm, ProfesionalForm, CobrarCitaForm, GastoForm
 
 
+# --- FUNCIÓN AUXILIAR PARA SAAS ---
+def obtener_mi_empresa(request):
+    """
+    Devuelve la empresa del usuario logueado.
+    Si es admin o no tiene empresa, devuelve None o maneja el error.
+    """
+    try:
+        return request.user.profesional.empresa
+    except AttributeError:
+        return None
+
+
 @login_required
 def home(request):
     hoy = date.today()
+    mi_empresa = obtener_mi_empresa(request)
 
     # 1 = Prioridad Alta (Pendiente/Confirmado)
     # 2 = Prioridad Baja (Realizado/Cancelado)
@@ -20,10 +33,12 @@ def home(request):
         output_field=IntegerField(),
     )
 
-    citas_hoy = Cita.objects.filter(fecha=hoy)
+    citas_hoy = Cita.objects.filter(fecha=hoy, empresa=mi_empresa)
 
-    # Si el usuario es un profesional
-    if hasattr(request.user, 'profesional'):
+    es_estilista = request.user.groups.filter(name='Profesionales').exists()
+
+    if es_estilista:
+        # Si es estilista, filtramos extra por SU perfil
         citas_hoy = citas_hoy.filter(profesional=request.user.profesional)
 
     citas_hoy = citas_hoy.order_by(orden_prioridad, 'hora')
@@ -38,16 +53,23 @@ def home(request):
 
 @login_required
 def listado_servicios(request):
+
+    mi_empresa = obtener_mi_empresa(request)
+
+    if not mi_empresa:
+        messages.error(request, "Tu usuario no tiene una empresa asignada.")
+        return render(request, 'core/lista_clientes.html', {'clientes': []})
+
     busqueda = request.GET.get('q')
 
     if busqueda:
-
         servicios = Servicio.objects.filter(
+            empresa=mi_empresa
+        ).filter(
             Q(nombre__icontains=busqueda)
         ).order_by('nombre')
     else:
-
-        servicios = Servicio.objects.all().order_by('nombre')
+        servicios = Servicio.objects.filter(empresa=mi_empresa).order_by('nombre')
 
     contexto = {
         'mis_servicios': servicios
@@ -60,7 +82,9 @@ def crear_servicio(request):
     if request.method == 'POST':
         form = ServicioForm(request.POST)
         if form.is_valid():
-            form.save()
+            servicio_nuevo = form.save(commit=False)
+            servicio_nuevo.empresa = obtener_mi_empresa(request)
+            servicio_nuevo.save()
             messages.success(request, f'¡Servicio {form.instance.nombre} se creó correctamente!')
             return redirect('lista_servicios')
     else:
@@ -77,7 +101,8 @@ def crear_servicio(request):
 @login_required
 @permission_required('core.change_servicio', raise_exception=True)
 def editar_servicio(request, id):
-    servicio = get_object_or_404(Servicio, pk=id)
+    mi_empresa = obtener_mi_empresa(request)
+    servicio = get_object_or_404(Servicio, pk=id, empresa=mi_empresa)
 
     if request.method == 'POST':
         form = ServicioForm(request.POST, instance=servicio)
@@ -98,7 +123,8 @@ def editar_servicio(request, id):
 @login_required
 @permission_required('core.delete_servicio', raise_exception=True)
 def eliminar_servicio(request, id):
-    servicio = get_object_or_404(Servicio, pk=id)
+    mi_empresa = obtener_mi_empresa(request)
+    servicio = get_object_or_404(Servicio, pk=id, empresa=mi_empresa)
 
     if request.method == 'POST':
         try:
@@ -117,25 +143,31 @@ def eliminar_servicio(request, id):
 @login_required
 def listado_clientes(request):
 
+    mi_empresa = obtener_mi_empresa(request)
+
+    if not mi_empresa:
+        messages.error(request, "Tu usuario no tiene una empresa asignada.")
+        return render(request, 'core/lista_clientes.html', {'clientes': []})
+
     busqueda = request.GET.get('q')
 
     if busqueda:
-
         clientes = Cliente.objects.filter(
+            empresa=mi_empresa
+        ).filter(
             Q(nombre__icontains=busqueda) |
             Q(apellido__icontains=busqueda) |
             Q(ci_ruc__icontains=busqueda)
         ).order_by('nombre', 'apellido')
     else:
-
-        clientes = Cliente.objects.all().order_by('nombre', 'apellido')
+        clientes = Cliente.objects.filter(empresa=mi_empresa).order_by('nombre', 'apellido')
 
     return render(request, 'core/lista_clientes.html', {'clientes': clientes})
 
 @login_required
 def detalle_cliente(request, id):
-
-    cliente = get_object_or_404(Cliente, pk=id)
+    mi_empresa = obtener_mi_empresa(request)
+    cliente = get_object_or_404(Cliente, pk=id, empresa=mi_empresa)
 
     historial = cliente.citas.all().order_by('-fecha')
 
@@ -145,15 +177,22 @@ def detalle_cliente(request, id):
     }
     return render(request, 'core/detalle_cliente.html', contexto)
 
+
 @login_required
 @permission_required('core.add_cliente', raise_exception=True)
 def crear_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, f'¡El cliente {form.instance.nombre} se creó correctamente!')
 
+            cliente_nuevo = form.save(commit=False)
+
+            # Le asignamos la empresa del usuario logueado
+            cliente_nuevo.empresa = obtener_mi_empresa(request)
+
+            cliente_nuevo.save()
+
+            messages.success(request, f'¡El cliente {form.instance.nombre} se creó correctamente!')
             return redirect('listado_clientes')
     else:
         form = ClienteForm()
@@ -163,8 +202,8 @@ def crear_cliente(request):
 @login_required
 @permission_required('core.change_cliente', raise_exception=True)
 def editar_cliente(request, id):
-
-    cliente = get_object_or_404(Cliente, pk=id)
+    mi_empresa = obtener_mi_empresa(request)
+    cliente = get_object_or_404(Cliente, pk=id, empresa=mi_empresa)
 
     if request.method == 'POST':
 
@@ -185,7 +224,8 @@ def editar_cliente(request, id):
 @login_required
 @permission_required('core.delete_cliente', raise_exception=True)
 def eliminar_cliente(request, id):
-    cliente = get_object_or_404(Cliente, pk=id)
+    mi_empresa = obtener_mi_empresa(request)
+    cliente = get_object_or_404(Cliente, pk=id, empresa=mi_empresa)
 
     if request.method == 'POST':
         try:
@@ -204,18 +244,27 @@ def eliminar_cliente(request, id):
 
 @login_required
 def listado_profesional(request):
+
+    mi_empresa = obtener_mi_empresa(request)
+
+    if not mi_empresa:
+        messages.error(request, "Tu usuario no tiene una empresa asignada.")
+        return render(request, 'core/lista_profesional.html', {'profesional': []})
+
     busqueda = request.GET.get('q')
 
     if busqueda:
 
         profesional = Profesional.objects.filter(
+            empresa=mi_empresa
+        ).filter(
             Q(nombre__icontains=busqueda) |
             Q(apellido__icontains=busqueda) |
             Q(especialidad__icontains=busqueda)
         ).order_by('nombre', 'apellido')
     else:
 
-        profesional = Profesional.objects.all().order_by('nombre', 'apellido')
+        profesional = Profesional.objects.filter(empresa=mi_empresa).order_by('nombre', 'apellido')
 
     return render(request, 'core/lista_profesional.html', {'profesional': profesional})
 
@@ -225,7 +274,12 @@ def crear_profesional(request):
     if request.method == 'POST':
         form = ProfesionalForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            profesional_nuevo = form.save(commit=False)
+
+
+            profesional_nuevo.empresa = obtener_mi_empresa(request)
+
+            profesional_nuevo.save()
             messages.success(request, f'¡El profesional {form.instance.nombre} se creó correctamente!')
 
             return redirect('listado_profesional')
@@ -237,8 +291,8 @@ def crear_profesional(request):
 @login_required
 @permission_required('core.change_profesional', raise_exception=True)
 def editar_profesional(request, id):
-
-    profesional = get_object_or_404(Profesional, pk=id)
+    mi_empresa = obtener_mi_empresa(request)
+    profesional = get_object_or_404(Profesional, pk=id, empresa=mi_empresa)
 
     if request.method == 'POST':
 
@@ -259,7 +313,8 @@ def editar_profesional(request, id):
 @login_required
 @permission_required('core.delete_profesional', raise_exception=True)
 def eliminar_profesional(request, id):
-    profesional = get_object_or_404(Profesional, pk=id)
+    mi_empresa = obtener_mi_empresa(request)
+    profesional = get_object_or_404(Profesional, pk=id, empresa=mi_empresa)
 
     if request.method == 'POST':
         try:
@@ -278,16 +333,22 @@ def eliminar_profesional(request, id):
 
 @login_required
 def agendar_cita(request):
-    if request.method == 'POST':
+    mi_empresa = obtener_mi_empresa(request)  # 1. Obtenemos la empresa
 
-        form = CitaForm(request.POST)
+    if request.method == 'POST':
+        form = CitaForm(request.POST, empresa=mi_empresa)
+
         if form.is_valid():
-            form.save()
+            cita_nueva = form.save(commit=False)
+
+            cita_nueva.empresa = obtener_mi_empresa(request)
+
+            cita_nueva.save()
             messages.success(request, '¡La cita se creó correctamente!')
             return redirect('listado_citas')
     else:
 
-        form = CitaForm()
+        form = CitaForm(empresa=mi_empresa)
 
     contexto = {
         'form': form,
@@ -298,16 +359,18 @@ def agendar_cita(request):
 
 @login_required
 def editar_cita(request, id):
-    cita = get_object_or_404(Cita, pk=id)
+    mi_empresa = obtener_mi_empresa(request)
+    cita = get_object_or_404(Cita, pk=id, empresa=mi_empresa)
 
     if request.method == 'POST':
-        form = CitaForm(request.POST, instance=cita)
+        form = CitaForm(request.POST, instance=cita, empresa=mi_empresa)
+
         if form.is_valid():
             form.save()
-            # Al terminar, volvemos al Dashboard (home) para seguir trabajando
             return redirect('home')
+
     else:
-        form = CitaForm(instance=cita)
+        form = CitaForm(instance=cita, empresa=mi_empresa)
 
     contexto = {
         'form': form,
@@ -319,19 +382,33 @@ def editar_cita(request, id):
 
 @login_required
 def listado_citas(request):
+    mi_empresa = obtener_mi_empresa(request)
+
+    # (Opcional) Si es superuser sin empresa, no mostramos nada para evitar error
+    if not mi_empresa:
+        messages.error(request, "Tu usuario no tiene una empresa asignada.")
+        return render(request, 'core/lista_clientes.html', {'clientes': []})
+
     # Traer citas activas desde HOY en adelante
     # Y que no estén canceladas ni realizadas
     citas = Cita.objects.filter(
+            empresa=mi_empresa
+        ).filter(
         fecha__gte=date.today(),
         estado__in=['PENDIENTE', 'CONFIRMADO']
     ).order_by('fecha', 'hora')
 
-    if hasattr(request.user, 'profesional'):
+    es_estilista = request.user.groups.filter(name='Profesionales').exists()
+
+    if es_estilista:
+
         citas = citas.filter(profesional=request.user.profesional)
 
     busqueda = request.GET.get('q')
     if busqueda:
         citas = citas.filter(
+            empresa=mi_empresa
+        ).filter(
             Q(cliente__nombre__icontains=busqueda) |
             Q(cliente__apellido__icontains=busqueda) |
             Q(profesional__nombre__icontains=busqueda)
@@ -340,14 +417,13 @@ def listado_citas(request):
     # 3. FILTRO POR FECHA EXACTA (NUEVO) 📅
     fecha_filtro = request.GET.get('fecha')
     if fecha_filtro:
-        # Si el usuario elige una fecha, sobrescribe el filtro para mostrar esa fecha exacta
-        # incluso si es pasada
         citas = Cita.objects.filter(
+            empresa=mi_empresa,
             fecha=fecha_filtro,
             estado__in=['PENDIENTE', 'CONFIRMADO']
         ).order_by('hora')
 
-        if hasattr(request.user, 'profesional'):
+        if es_estilista:
             citas = citas.filter(profesional=request.user.profesional)
 
     return render(request, 'core/lista_citas.html', {'citas': citas})
@@ -355,7 +431,8 @@ def listado_citas(request):
 
 @login_required
 def finalizar_cita(request, id):
-    cita = get_object_or_404(Cita, pk=id)
+    mi_empresa = obtener_mi_empresa(request)
+    cita = get_object_or_404(Cita, pk=id, empresa=mi_empresa)
 
     if request.method == 'POST':
         form = CobrarCitaForm(request.POST, instance=cita)
@@ -380,7 +457,8 @@ def finalizar_cita(request, id):
 
 @login_required
 def cancelar_cita(request, id):
-    cita = get_object_or_404(Cita, pk=id)
+    mi_empresa = obtener_mi_empresa(request)
+    cita = get_object_or_404(Cita, pk=id, empresa=mi_empresa)
 
     if request.method == 'POST':
         # Solo si el usuario confirmó en el formulario rojo
@@ -394,53 +472,49 @@ def cancelar_cita(request, id):
 
 @login_required
 def confirmar_cita(request, id):
-    cita = get_object_or_404(Cita, pk=id)
+    mi_empresa = obtener_mi_empresa(request)
+    cita = get_object_or_404(Cita, pk=id, empresa=mi_empresa)
     cita.estado = 'CONFIRMADO'
     cita.save()
     return redirect('home')
-
-
 
 #---Vistas Financieras---
 
 @login_required
 @permission_required('core.view_gasto', raise_exception=True)
 def reporte_caja(request):
-    # Valores por defecto: Hoy
+    mi_empresa = obtener_mi_empresa(request)
+
     fecha_inicio = date.today()
     fecha_fin = date.today()
 
-    # Si vienen datos en la URL (?fecha_inicio=...&fecha_fin=...)
     if request.GET.get('fecha_inicio') and request.GET.get('fecha_fin'):
         try:
             fecha_inicio = datetime.strptime(request.GET.get('fecha_inicio'), '%Y-%m-%d').date()
             fecha_fin = datetime.strptime(request.GET.get('fecha_fin'), '%Y-%m-%d').date()
         except ValueError:
-            pass  # Si hay error de formato, nos quedamos con "hoy"
+            pass
 
-    # INGRESOS
+    # INGRESOS (Filtrados por empresa)
     citas = Cita.objects.filter(
+        empresa=mi_empresa,
         fecha__range=[fecha_inicio, fecha_fin],
         estado='REALIZADO'
     ).order_by('fecha', 'hora')
 
     total_ingresos = citas.aggregate(total=Sum('monto_cobrado'))['total'] or 0
 
-    # --- DESGLOSE POR TIPO DE PAGO ---
-    # Efectivo
     ingresos_efectivo = citas.filter(metodo_pago='EFECTIVO').aggregate(t=Sum('monto_cobrado'))['t'] or 0
-    # Banco - QR/TC/TD/SIPAP
     ingresos_digital = total_ingresos - ingresos_efectivo
 
-    # EGRESOS
-    # Gastos de caja chica en efectivo
-    gastos = Gasto.objects.filter(fecha__range=[fecha_inicio, fecha_fin])
+    # EGRESOS (Filtrados por empresa)
+    gastos = Gasto.objects.filter(
+        empresa=mi_empresa,
+        fecha__range=[fecha_inicio, fecha_fin]
+    )
     total_egresos = gastos.aggregate(total=Sum('monto'))['total'] or 0
 
-    # SALDO FINAL DEL DÍA
     saldo_neto = total_ingresos - total_egresos
-
-    # Efectivo que entró - Gastos que pagué en efectivo
     caja_fisica = ingresos_efectivo - total_egresos
 
     contexto = {
@@ -461,20 +535,34 @@ def reporte_caja(request):
 @login_required
 @permission_required('core.view_gasto', raise_exception=True)
 def lista_gastos(request):
-    gastos = Gasto.objects.all().order_by('-fecha', '-id')
+    mi_empresa = obtener_mi_empresa(request)
+
+    if not mi_empresa:
+        messages.error(request, "Tu usuario no tiene una empresa asignada.")
+        return render(request, 'core/lista_gastos.html', {'gastos': []})
+
+    gastos = Gasto.objects.filter(
+            empresa=mi_empresa
+        ).order_by('-fecha', '-id')
     return render(request, 'core/lista_gastos.html', {'gastos': gastos})
 
 @login_required
 def crear_gasto(request):
+    mi_empresa = obtener_mi_empresa(request)
     if request.method == 'POST':
-        form = GastoForm(request.POST)
+        form = GastoForm(request.POST, empresa=mi_empresa)
         if form.is_valid():
-            form.save()
+            gasto_nuevo = form.save(commit=False)
+
+            gasto_nuevo.empresa = obtener_mi_empresa(request)
+
+            gasto_nuevo.save()
+
             messages.success(request, 'Gasto registrado correctamente.')
             return redirect('lista_gastos')
     else:
         # Sugerimos la fecha de hoy por defecto
-        form = GastoForm(initial={'fecha': date.today()})
+        form = GastoForm(initial={'fecha': date.today()}, empresa=mi_empresa)
 
     contexto = {
         'form': form,
@@ -486,47 +574,43 @@ def crear_gasto(request):
 
 
 @login_required
-@permission_required('core.delete_gasto', raise_exception=True)
+@permission_required('core.delete_gasto', raise_exception=True)  # O el permiso que uses para gerencia
 def liquidacion_comisiones(request):
+    mi_empresa = obtener_mi_empresa(request)
 
-    fecha_inicio = date.today().replace(day=1)  # Por defecto, primer día del mes actual
+    fecha_inicio = date.today().replace(day=1)
     fecha_fin = date.today()
-    profesionales = Profesional.objects.all()
 
-    # Definir Variables de resultado
+    profesionales = Profesional.objects.filter(empresa=mi_empresa)
+
     profesional_elegido = None
     citas = []
     total_cobrado = 0
     monto_comision = 0
 
-    # Filtro buscar
     profesional_id = request.GET.get('profesional_id')
     fecha_ini_get = request.GET.get('fecha_inicio')
     fecha_fin_get = request.GET.get('fecha_fin')
 
     if profesional_id and fecha_ini_get and fecha_fin_get:
         try:
-            # Convertir fechas de texto a objetos date
             fecha_inicio = datetime.strptime(fecha_ini_get, '%Y-%m-%d').date()
             fecha_fin = datetime.strptime(fecha_fin_get, '%Y-%m-%d').date()
 
-            profesional_elegido = get_object_or_404(Profesional, pk=profesional_id)
+            profesional_elegido = get_object_or_404(Profesional, pk=profesional_id, empresa=mi_empresa)
 
-            # Obtener las Ctas con estado Realizada del profesional en ese rango de fechas
             citas = Cita.objects.filter(
+                empresa=mi_empresa,
                 profesional=profesional_elegido,
                 fecha__range=[fecha_inicio, fecha_fin],
                 estado='REALIZADO'
             ).order_by('fecha', 'hora')
 
-            # Suma lo cobrado por el profesional por cada servicio.
             total_cobrado = citas.aggregate(total=Sum('monto_cobrado'))['total'] or 0
-
-            # Calcular la comisión.
             monto_comision = (total_cobrado * profesional_elegido.porcentaje_comision) / 100
 
         except ValueError:
-            pass  # Si hay error de fechas, nada
+            pass
 
     contexto = {
         'profesionales': profesionales,

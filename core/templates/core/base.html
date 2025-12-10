@@ -54,7 +54,7 @@
                             <a class="nav-link" href="{% url 'listado_clientes' %}">Clientes</a>
                         </li>
 
-                        {% if user.is_staff %}
+                        {% if perms.core.view_gasto %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'listado_profesional' %}">Profesionales</a>
                         </li>
@@ -67,16 +67,16 @@
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="{% url 'lista_gastos' %}">Control de Gastos</a></li>
-                                    {% if perms.core.delete_gasto %}
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="{% url 'reporte_caja' %}">  Caja Diaria</a></li>
+                                    {% if perms.core.delete_gasto %}
                                         <li><a class="dropdown-item" href="{% url 'liquidacion_comisiones' %}"> Comisiones</a></li>
                                     {% endif %}
                                 </ul>
                             </li>
                         {% endif %}
 
-                        {% if user.profesional %}
+                        {% if user.profesional and user.profesional.porcentaje_comision > 0 %}
                             <li class="nav-item">
                                  <a class="nav-link" href="{% url 'mis_comisiones' %}"> <i class="bi bi-cash-coin"></i> Mis Ganancias</a>
                             </li>

@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Cita, Servicio, Cliente, Profesional, HorarioAtencion, Gasto
+from .models import Cita, Servicio, Cliente, Profesional, HorarioAtencion, Gasto, CategoriaGasto
 from datetime import date, datetime
 
 
@@ -8,14 +8,25 @@ class CitaForm(forms.ModelForm):
     class Meta:
         model = Cita
         fields = ['cliente', 'profesional', 'servicio', 'fecha', 'hora']
-        # 'form-control-sm' para hacerlos compactos
         widgets = {
-            'fecha': forms.DateInput(format='%Y-%m-%d',attrs={'type': 'date', 'class': 'form-control form-control-sm'}),
+            'fecha': forms.DateInput(format='%Y-%m-%d',
+                                     attrs={'type': 'date', 'class': 'form-control form-control-sm'}),
             'hora': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control form-control-sm'}),
             'cliente': forms.Select(attrs={'class': 'form-select select2'}),
             'profesional': forms.Select(attrs={'class': 'form-select select2'}),
             'servicio': forms.Select(attrs={'class': 'form-select select2'}),
         }
+
+
+    def __init__(self, *args, **kwargs):
+        self.empresa = kwargs.pop('empresa', None)
+        super().__init__(*args, **kwargs)
+
+        if self.empresa:
+            # Filtramos los desplegables para mostrar SOLO datos de esta empresa
+            self.fields['cliente'].queryset = Cliente.objects.filter(empresa=self.empresa).order_by('nombre')
+            self.fields['profesional'].queryset = Profesional.objects.filter(empresa=self.empresa).order_by('nombre')
+            self.fields['servicio'].queryset = Servicio.objects.filter(empresa=self.empresa).order_by('nombre')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -23,39 +34,40 @@ class CitaForm(forms.ModelForm):
         hora = cleaned_data.get('hora')
         profesional = cleaned_data.get('profesional')
 
-        # Si falta algún dato básico, salimos.
         if not (fecha and hora and profesional):
             return
 
         # --- VALIDACIÓN 1: NO VIAJAR AL PASADO ---
         hoy = date.today()
-
-        # A. Si la fecha es anterior a hoy (ayer, antes de ayer, etc...)
         if fecha < hoy:
             raise ValidationError("No se pueden agendar citas en fechas pasadas.")
 
-        # B. Si la fecha es HOY, pero la hora ya pasó (ohasama la hora)
         if fecha == hoy:
             hora_actual = datetime.now().time()
             if hora < hora_actual:
                 raise ValidationError("La hora seleccionada ya ha pasado.")
 
         # 2. VALIDAR DÍAS Y HORARIOS DE ATENCIÓN
-        dia_semana = fecha.weekday()  # 0=Lunes, 6=Domingo
+        dia_semana = fecha.weekday()
 
         try:
-            # Buscamos la regla para ese día específico en la BD
-            horario = HorarioAtencion.objects.get(dia_semana=dia_semana)
+
+            if self.empresa:
+                horario = HorarioAtencion.objects.get(empresa=self.empresa, dia_semana=dia_semana)
+            else:
+                # Fallback por si acaso (ej. testing sin empresa)
+                horario = HorarioAtencion.objects.get(dia_semana=dia_semana)
+
         except HorarioAtencion.DoesNotExist:
-            # Si por error no configuraron el día en el admin, asumimos cerrado por seguridad
             raise ValidationError("No hay horario configurado para este día.")
+        except HorarioAtencion.MultipleObjectsReturned:
+            raise ValidationError("Error crítico: Hay múltiples configuraciones para este día. Contacte a soporte.")
 
         # Regla A: Dias de atención.
         if not horario.abierto:
             raise ValidationError(f"El salón permanece cerrado los {horario.get_dia_semana_display()}´s.")
 
-        # Regla B: Horarios (Comparamos objetos TimeField directamente)
-        # Nota: hora es un objeto time (ej: 17:30), horario.hora_inicio también.
+        # Regla B: Horarios
         if not (horario.hora_inicio <= hora < horario.hora_fin):
             raise ValidationError(
                 f"El horario de atención los {horario.get_dia_semana_display()}´s es de "
@@ -64,6 +76,7 @@ class CitaForm(forms.ModelForm):
 
         # --- VALIDACIÓN 2: DISPONIBILIDAD  ---
         citas_coincidentes = Cita.objects.filter(
+            empresa=self.empresa,
             profesional=profesional,
             fecha=fecha,
             hora=hora
@@ -77,8 +90,7 @@ class CitaForm(forms.ModelForm):
                 f"El profesional {profesional} ya tiene una cita agendada a las {hora}."
             )
 
-            # Opcional: error pegado al campo 'hora':
-            # self.add_error('hora', 'Horario no disponible para este estilista')
+
 
 class CobrarCitaForm(forms.ModelForm):
     class Meta:
@@ -148,3 +160,10 @@ class GastoForm(forms.ModelForm):
             'fecha': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'categoria': forms.Select(attrs={'class': 'form-select select2'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        self.empresa = kwargs.pop('empresa', None)
+        super().__init__(*args, **kwargs)
+
+        if self.empresa:
+            self.fields['categoria'].queryset = CategoriaGasto.objects.filter(empresa=self.empresa)
