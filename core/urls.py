@@ -27,5 +27,4 @@ urlpatterns = [
     path('gastos/nuevo/', views.crear_gasto, name='crear_gasto'),
     path('comisiones/', views.liquidacion_comisiones, name='liquidacion_comisiones'),
     path('mis-comisiones/', views.mis_comisiones, name='mis_comisiones'),
-    path('activar-admin-secreto/', views.crear_superadmin_emergencia),
 ]

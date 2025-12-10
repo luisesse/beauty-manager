@@ -659,20 +659,3 @@ def mis_comisiones(request):
     }
     return render(request, 'core/mis_comisiones.html', contexto)
 
-from django.http import HttpResponse
-from django.contrib.auth.models import User
-
-def crear_superadmin_emergencia(request):
-
-    nuevo_usuario = "manager"
-    nuevo_email = "tu_email@ejemplo.com"
-    nueva_clave = "cholu4545"
-
-    try:
-        if not User.objects.filter(username=nuevo_usuario).exists():
-            User.objects.create_superuser(nuevo_usuario, nuevo_email, nueva_clave)
-            return HttpResponse(f"¡ÉXITO! 🚀<br>Usuario: {nuevo_usuario}<br>Clave: {nueva_clave}<br><a href='/admin'>Ir al Login</a>")
-        else:
-            return HttpResponse(f"El usuario {nuevo_usuario} ya existe. Ve al login.")
-    except Exception as e:
-        return HttpResponse(f"Error: {str(e)}")
