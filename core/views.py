@@ -289,20 +289,40 @@ def crear_profesional(request):
     return render(request, 'core/form_profesional.html', {'form': form, 'titulo': 'Nuevo Profesional'})
 
 @login_required
+@permission_required('core.add_profesional', raise_exception=True)
+def crear_profesional(request):
+    mi_empresa = obtener_mi_empresa(request)
+
+    if request.method == 'POST':
+
+        form = ProfesionalForm(request.POST, request.FILES, empresa=mi_empresa)
+        if form.is_valid():
+            profesional = form.save(commit=False)
+            profesional.empresa = mi_empresa
+            profesional.save()
+            messages.success(request, f'¡El profesional {profesional.nombre} se creó correctamente!')
+            return redirect('listado_profesional')
+    else:
+
+        form = ProfesionalForm(empresa=mi_empresa)
+
+    return render(request, 'core/form_profesional.html', {'form': form, 'titulo': 'Nuevo Profesional'})
+
+@login_required
 @permission_required('core.change_profesional', raise_exception=True)
 def editar_profesional(request, id):
     mi_empresa = obtener_mi_empresa(request)
+
     profesional = get_object_or_404(Profesional, pk=id, empresa=mi_empresa)
 
     if request.method == 'POST':
 
-        form = ProfesionalForm(request.POST, request.FILES, instance=profesional)
+        form = ProfesionalForm(request.POST, request.FILES, instance=profesional, empresa=mi_empresa)
         if form.is_valid():
             form.save()
             return redirect('listado_profesional')
     else:
-
-        form = ProfesionalForm(instance=profesional)
+        form = ProfesionalForm(instance=profesional, empresa=mi_empresa)
 
     contexto = {
         'form': form,

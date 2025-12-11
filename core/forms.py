@@ -27,6 +27,7 @@ class CitaForm(forms.ModelForm):
             self.fields['cliente'].queryset = Cliente.objects.filter(empresa=self.empresa).order_by('nombre')
             self.fields['profesional'].queryset = Profesional.objects.filter(empresa=self.empresa).order_by('nombre')
             self.fields['servicio'].queryset = Servicio.objects.filter(empresa=self.empresa).order_by('nombre')
+            self.fields['profesional'].label_from_instance = lambda obj: f"{obj.nombre} {obj.apellido}"
 
     def clean(self):
         cleaned_data = super().clean()
@@ -129,6 +130,7 @@ class ClienteForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
         }
 
+
 class ProfesionalForm(forms.ModelForm):
     class Meta:
         model = Profesional
@@ -147,6 +149,16 @@ class ProfesionalForm(forms.ModelForm):
             }),
             'imagen': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        self.empresa = kwargs.pop('empresa', None)
+        super().__init__(*args, **kwargs)
+
+        if self.empresa:
+
+            if 'usuario' in self.fields:
+                del self.fields['usuario']
+
 
 # Formularios de Gastos
 
