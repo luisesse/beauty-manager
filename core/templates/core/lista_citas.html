@@ -67,23 +67,25 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="https://wa.me/{{ cita.cliente.telefono|whatsapp_url }}?text={{ cita|whatsapp_mensaje }}"
-                                   target="_blank"
-                                   class="btn btn-sm btn-success"
-                                   title="Enviar Recordatorio">
-                                    <i class="bi bi-whatsapp"></i>
-                                </a>
-                                <div class="btn-group">
-                                    <a href="{% url 'editar_cita' cita.id %}" class="btn btn-sm btn-outline-secondary">
-                                        <span class="d-none d-md-inline">Modificar</span>
-                                        <i class="bi bi-pencil-square"></i>
+                                <div class="d-flex align-items-center gap-1">
+                                    <a href="https://wa.me/{{ cita.cliente.telefono|whatsapp_url }}?text={{ cita|whatsapp_mensaje }}"
+                                       target="_blank"
+                                       class="btn btn-sm btn-success"
+                                       title="Enviar Recordatorio">
+                                        <i class="bi bi-whatsapp"></i>
                                     </a>
-                                    {% if perms.core.add_cita %}
-                                        <a href="{% url 'cancelar_cita' cita.id %}" class="btn btn-sm btn-outline-danger">
-                                            <span class="d-none d-md-inline">Cancelar</span>
-                                            <i class="bi bi-x-square"></i>
+                                    <div class="btn-group">
+                                        <a href="{% url 'editar_cita' cita.id %}" class="btn btn-sm btn-outline-secondary">
+                                            <span class="d-none d-md-inline">Modificar</span>
+                                            <i class="bi bi-pencil-square"></i>
                                         </a>
-                                    {% endif %}
+                                        {% if perms.core.add_cita %}
+                                            <a href="{% url 'cancelar_cita' cita.id %}" class="btn btn-sm btn-outline-danger">
+                                                <span class="d-none d-md-inline">Cancelar</span>
+                                                <i class="bi bi-x-square"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </td>
                         </tr>

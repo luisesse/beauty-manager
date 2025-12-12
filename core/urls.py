@@ -25,6 +25,7 @@ urlpatterns = [
     path('citas/confirmar/<int:id>/', views.confirmar_cita, name='confirmar_cita'),
     path('gastos/', views.lista_gastos, name='lista_gastos'),
     path('gastos/nuevo/', views.crear_gasto, name='crear_gasto'),
+    path('gastos/categorias/', views.gestion_categorias, name='gestion_categorias'),
     path('comisiones/', views.liquidacion_comisiones, name='liquidacion_comisiones'),
     path('mis-comisiones/', views.mis_comisiones, name='mis_comisiones'),
     path('horarios/', views.listado_horarios, name='listado_horarios'),

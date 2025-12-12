@@ -180,6 +180,15 @@ class GastoForm(forms.ModelForm):
         if self.empresa:
             self.fields['categoria'].queryset = CategoriaGasto.objects.filter(empresa=self.empresa)
 
+class CategoriaGastoForm(forms.ModelForm):
+    class Meta:
+        model = CategoriaGasto
+        fields = ['nombre']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Limpieza, Alquiler...'})
+        }
+
+
 class HorarioForm(forms.ModelForm):
     class Meta:
         model = HorarioAtencion

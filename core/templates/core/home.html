@@ -2,6 +2,8 @@
 
 {% load whatsapp_filters %} ```
 
+{% load humanize %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>
@@ -15,7 +17,53 @@
         <a href="{% url 'agendar_cita' %}" class="btn btn-primary"> <i class="bi bi-file-earmark-plus"></i> Agendar Cita</a>
     {% endif %}
 </div>
+<div class="row g-3 mb-4">
 
+    <div class="col-6 col-md-4">
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
+            <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Citas Hoy</h6>
+                    <h2 class="mb-0 fw-bold text-primary">{{ kpi_total }}</h2>
+                </div>
+                <div class="bg-primary bg-opacity-10 p-2 rounded-circle text-primary">
+                    <i class="bi bi-calendar-check fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-4">
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-warning">
+            <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Por Confirmar</h6>
+                    <h2 class="mb-0 fw-bold text-warning">{{ kpi_pendientes }}</h2>
+                </div>
+                <div class="bg-warning bg-opacity-10 p-2 rounded-circle text-warning">
+                    <i class="bi bi-exclamation-lg fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if perms.core.view_gasto %}
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
+            <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Venta Estimada</h6>
+                    <h3 class="mb-0 fw-bold text-success">{{ kpi_proyeccion|intcomma }} Gs</h3>
+                </div>
+                <div class="bg-success bg-opacity-10 p-2 rounded-circle text-success">
+                    <i class="bi bi-graph-up-arrow fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
 <div class="card shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -56,20 +104,29 @@
                                 {% endif %}
                             </td>
                             <td class="text-end">
+                                <div class="d-flex justify-content-end gap-1">
 
-                                {% if cita.estado == 'PENDIENTE' %}
-                                    <a href="{% url 'confirmar_cita' cita.id %}" class="btn btn-sm btn-outline-primary" title="Confirmar Asistencia">
-                                       Confirmar <i class="bi bi-check2-circle"></i>
-                                    </a>
-                                {% endif %}
-
-                                {% if cita.estado != 'REALIZADO' and cita.estado != 'CANCELADO' %}
-                                    {% if perms.core.add_cita %}
-                                        <a href="{% url 'finalizar_cita' cita.id %}" class="btn btn-sm btn-outline-success" title="Cobrar y Finalizar">
-                                            Cobrar <i class="bi bi-cash-coin"></i>
+                                    {% if cita.estado == 'PENDIENTE' %}
+                                        <a href="{% url 'confirmar_cita' cita.id %}"
+                                           class="btn btn-sm btn-outline-success"
+                                           title="Confirmar Asistencia">
+                                           <i class="bi bi-calendar-check-fill"></i>
+                                           <span class="d-none d-md-inline ms-1 fw-bold">Confirmar</span>
                                         </a>
                                     {% endif %}
-                                {% endif %}
+
+                                    {% if cita.estado != 'REALIZADO' and cita.estado != 'CANCELADO' %}
+                                        {% if perms.core.add_cita %}
+                                            <a href="{% url 'finalizar_cita' cita.id %}"
+                                               class="btn btn-sm btn-outline-success"
+                                               title="Cobrar y Finalizar">
+                                                <i class="bi bi-cash-coin"></i>
+                                                <span class="d-none d-md-inline ms-1">Cobrar</span>
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+
+                                </div>
                             </td>
                         </tr>
                     {% empty %}

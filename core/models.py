@@ -162,14 +162,14 @@ class CategoriaGasto(models.Model):
 
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="categorias_gasto")
 
-    nombre = models.CharField(max_length=100)  # Quitamos unique=True global
+    nombre = models.CharField(max_length=100)
 
     def __str__(self):
         return self.nombre
 
     class Meta:
         ordering = ['nombre']
-        # Dos empresas pueden tener una categoría "Limpieza" sin chocar
+
         unique_together = [['empresa', 'nombre']]
 
 

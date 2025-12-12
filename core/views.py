@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required,permission_required
 from django.db.models import ProtectedError, Sum, Q, Case, When, Value, IntegerField
 from django.contrib import messages
 from datetime import date, datetime
-from .models import Servicio, Cita,  Cliente, Profesional, Gasto, HorarioAtencion
-from .forms import CitaForm, ServicioForm, ClienteForm, ProfesionalForm, CobrarCitaForm, GastoForm, HorarioForm
+from .models import Servicio, Cita,  Cliente, Profesional, Gasto, HorarioAtencion, CategoriaGasto
+from .forms import CitaForm, ServicioForm, ClienteForm, ProfesionalForm, CobrarCitaForm, GastoForm, HorarioForm, CategoriaGastoForm
 
 
 # --- FUNCIÓN AUXILIAR PARA SAAS ---
@@ -24,8 +24,6 @@ def home(request):
     hoy = date.today()
     mi_empresa = obtener_mi_empresa(request)
 
-    # 1 = Prioridad Alta (Pendiente/Confirmado)
-    # 2 = Prioridad Baja (Realizado/Cancelado)
     orden_prioridad = Case(
         When(estado='PENDIENTE', then=Value(1)),
         When(estado='CONFIRMADO', then=Value(1)),
@@ -42,6 +40,26 @@ def home(request):
         citas_hoy = citas_hoy.filter(profesional=request.user.profesional)
 
     citas_hoy = citas_hoy.order_by(orden_prioridad, 'hora')
+
+    # 1. Total de citas hoy
+    total_citas = citas_hoy.count()
+
+    # 2. Cuántas faltan confirmar (Acción urgente)
+    pendientes = citas_hoy.filter(estado='PENDIENTE').count()
+
+    # 3. Proyección de dinero (Suma de precios de servicios de hoy)
+
+    proyeccion = citas_hoy.aggregate(total=Sum('servicio__precio_estimado'))['total'] or 0
+
+    contexto = {
+        'citas': citas_hoy,
+        'fecha_actual': hoy,
+        # Pasamos los datos nuevos
+        'kpi_total': total_citas,
+        'kpi_pendientes': pendientes,
+        'kpi_proyeccion': proyeccion
+    }
+    return render(request, 'core/home.html', contexto)
 
     contexto = {
         'citas': citas_hoy,
@@ -591,6 +609,28 @@ def crear_gasto(request):
     }
 
     return render(request, 'core/form_servicio.html', contexto)
+
+
+@login_required
+def gestion_categorias(request):
+    mi_empresa = obtener_mi_empresa(request)
+
+    # Procesar formulario de creación
+    if request.method == 'POST':
+        form = CategoriaGastoForm(request.POST)
+        if form.is_valid():
+            cat = form.save(commit=False)
+            cat.empresa = mi_empresa
+            cat.save()
+            messages.success(request, f"Categoría '{cat.nombre}' creada.")
+            return redirect('gestion_categorias')
+    else:
+        form = CategoriaGastoForm()
+
+    # Listar existentes
+    categorias = CategoriaGasto.objects.filter(empresa=mi_empresa)
+
+    return render(request, 'core/gestion_categorias.html', {'categorias': categorias, 'form': form})
 
 
 @login_required

@@ -62,7 +62,7 @@ body {
 
 /* Al pasar el mouse, la tarjeta sube y brilla */
 .card:hover, .list-group-item:hover {
-    transform: translateY(-5px);
+    transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(111, 66, 193, 0.2) !important; /* Sombra lila */
     z-index: 10;
 }

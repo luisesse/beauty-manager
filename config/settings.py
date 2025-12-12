@@ -49,7 +49,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
     'django.contrib.humanize',
     'core',
 ]
@@ -179,3 +181,12 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',
 }
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'deqlmfzmz',
+    'API_KEY': '772369665267925',
+    'API_SECRET': 'llUvw4hIH8ahJd_zEP3LSgE4ZWI',
+}
+
+# Decirle a Django que use Cloudinary para los archivos media (fotos subidas)
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
