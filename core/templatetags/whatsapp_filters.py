@@ -25,11 +25,15 @@ def whatsapp_url(telefono, codigo_pais="595"):
 @register.filter
 def whatsapp_mensaje(cita):
     """
-    Crea el texto del mensaje personalizado
+    Crea el texto del mensaje personalizado usando el nombre REAL de la empresa.
     """
+    # 1. Obtenemos el nombre de la empresa de la cita y lo ponemos en Mayúsculas
+    nombre_empresa = cita.empresa.nombre.upper()
+
+    # 2. Armamos el mensaje dinámico
     texto = (
         f"Hola {cita.cliente.nombre}! %0A"
-        f"Te recordamos tu cita en * Beauty Manager*:%0A"
+        f"Te recordamos tu cita en *{nombre_empresa}* :%0A"
         f"Fecha: {cita.fecha.strftime('%d/%m')}%0A"
         f"Hora: {cita.hora.strftime('%H:%M')} hs%0A"
         f"Servicio: {cita.servicio.nombre}%0A%0A"

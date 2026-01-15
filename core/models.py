@@ -125,6 +125,7 @@ class Cita(models.Model):
         default='PENDIENTE'
     )
     metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO, default='EFECTIVO')
+    notas_adicionales = models.TextField(blank=True, null=True, verbose_name="Detalles / Adicionales")
 
     def __str__(self):
         return f"Cita: {self.cliente} - {self.fecha} {self.hora}"

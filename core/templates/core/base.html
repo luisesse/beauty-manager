@@ -31,7 +31,12 @@
        <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
             <div class="container-fluid px-4">
                 <a class="navbar-brand" href="{% url 'home' %}">
-                    <i class="bi bi-scissors"></i> BeautyManager
+                    <i class="bi bi-scissors"></i>
+                    {% if user.profesional and user.profesional.empresa %}
+                        {{ user.profesional.empresa.nombre|upper }}
+                    {% else %}
+                        BEAUTY MANAGER
+                    {% endif %}
                 </a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

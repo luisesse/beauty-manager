@@ -79,7 +79,15 @@
                             <td>{{ cita.fecha|date:"d/m" }}</td>
                             <td>{{ cita.hora }}</td>
                             <td>{{ cita.cliente.nombre }} {{ cita.cliente.apellido }}</td>
-                            <td>{{ cita.servicio.nombre }}</td>
+                            <td>
+                                <strong>{{ cita.servicio.nombre }}</strong>
+                                {% if cita.notas_adicionales %}
+                                    <br>
+                                    <small class="text-muted fst-italic" style="font-size: 0.85em;">
+                                        <i class="bi bi-tag-fill"></i> {{ cita.notas_adicionales }}
+                                    </small>
+                                {% endif %}
+                            </td>
                             <td class="text-end fw-bold">{{ cita.monto_cobrado|intcomma }} Gs.</td>
                         </tr>
                     {% empty %}

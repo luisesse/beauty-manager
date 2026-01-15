@@ -477,6 +477,11 @@ def finalizar_cita(request, id):
         if form.is_valid():
             # 1. Guardamos el monto
             cita_final = form.save(commit=False)
+
+            notas = request.POST.get('notas_adicionales')
+            if notas:
+                cita_final.notas_adicionales = notas
+
             # 2. Forzamos el estado a REALIZADO
             cita_final.estado = 'REALIZADO'
             cita_final.save()

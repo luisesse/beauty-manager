@@ -24,8 +24,14 @@
             {% for cita in historial %}
                 <div class="list-group-item list-group-item-action">
                     <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">{{ cita.servicio.nombre }}</h5>
-                        <small class="text-muted">{{ cita.fecha }}</small>
+                        <div> <h5 class="mb-1">{{ cita.servicio.nombre }}</h5>
+                            {% if cita.notas_adicionales %}
+                                <small class="text-muted fst-italic d-block">
+                                    <i class="bi bi-tag-fill"></i> {{ cita.notas_adicionales }}
+                                </small>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted text-nowrap ms-2">{{ cita.fecha }}</small>
                     </div>
                     <p class="mb-1">Atendido por: <strong>{{ cita.profesional.nombre }}</strong></p>
                     
