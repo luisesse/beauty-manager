@@ -13,3 +13,7 @@ env/
 
 # Archivos de medios (Las fotos de prueba no suelen subirse al código base)
 media/
+
+# Ignorar carpetas de backups
+backups/
+*.json
